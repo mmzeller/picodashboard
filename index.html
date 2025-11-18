@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Station Dashboard</title>
+    <title>Weather Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -353,7 +353,7 @@
         
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 400px;
             padding: 15px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 16px;
@@ -368,6 +368,10 @@
             font-weight: 600;
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .status.loading {
@@ -386,6 +390,25 @@
             background: rgba(239, 68, 68, 0.15);
             color: #fca5a5;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+        
+        .status.offline {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+        
+        .status-icon {
+            font-size: 1.2em;
+        }
+        
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         .hidden {
@@ -412,7 +435,8 @@
             .card-number { font-size: 1em; }
             .card-title { font-size: 0.7em; }
             .card-icon { font-size: 1.8em; }
-            .chart-container { height: 250px; padding: 10px; }
+            .chart-container { height: 350px; padding: 10px 5px; }
+            .chart-section { padding: 20px 15px; }
             .chart-section h2 { font-size: 1.3em; }
         }
         
@@ -424,6 +448,7 @@
             }
             .gauge-value { font-size: 2em; }
             .card-meta { font-size: 0.75em; }
+            .chart-container { height: 320px; }
         }
     </style>
 </head>
@@ -537,6 +562,8 @@
         let updateInterval;
         let chart;
         let previousData = {};
+        let lastUpdateTime = null;
+        let offlineThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
 
         // Auto-start dashboard on load
         window.addEventListener('DOMContentLoaded', function() {
@@ -544,6 +571,8 @@
             showStatus('🔄 Establishing connection...', 'loading');
             fetchData();
             updateInterval = setInterval(fetchData, 20000);
+            // Check offline status every 30 seconds
+            setInterval(checkOfflineStatus, 30000);
         });
 
         function startDashboard() {
@@ -579,15 +608,48 @@
                 }
                 
                 const feed = data.feeds[0];
+                const dataTimestamp = new Date(feed.created_at);
+                lastUpdateTime = dataTimestamp;
+                
                 updateDisplay(feed);
                 fetchHistoricalData();
                 
-                showStatus('✓ Data synchronized', 'success');
-                setTimeout(() => {
-                    document.getElementById('statusDiv').classList.add('hidden');
-                }, 2000);
+                // Check if data is recent
+                const now = new Date();
+                const timeSinceUpdate = now - dataTimestamp;
+                
+                if (timeSinceUpdate > offlineThreshold) {
+                    const minutesAgo = Math.floor(timeSinceUpdate / 60000);
+                    showStatus(`⚠️ Pico offline - Last data ${minutesAgo} minutes ago`, 'offline', true);
+                } else {
+                    showStatus('✓ Data synchronized', 'success');
+                    setTimeout(() => {
+                        document.getElementById('statusDiv').classList.add('hidden');
+                    }, 2000);
+                }
             } catch (error) {
                 showStatus('⚠️ Connection error: ' + error.message, 'error');
+            }
+        }
+        
+        function checkOfflineStatus() {
+            if (!lastUpdateTime) return;
+            
+            const now = new Date();
+            const timeSinceUpdate = now - lastUpdateTime;
+            
+            if (timeSinceUpdate > offlineThreshold) {
+                const minutesAgo = Math.floor(timeSinceUpdate / 60000);
+                const hoursAgo = Math.floor(minutesAgo / 60);
+                
+                let timeString;
+                if (hoursAgo > 0) {
+                    timeString = `${hoursAgo}h ${minutesAgo % 60}m ago`;
+                } else {
+                    timeString = `${minutesAgo}m ago`;
+                }
+                
+                showStatus(`⚠️ Pico offline - Last update ${timeString}`, 'offline', true);
             }
         }
 
@@ -645,19 +707,24 @@
 
         async function fetchHistoricalData() {
             try {
-                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=100`;
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=50`;
                 const response = await fetch(url);
                 const data = await response.json();
                 
                 if (!data.feeds || data.feeds.length === 0) return;
                 
-                const labels = data.feeds.map(f => {
+                // Show only last 20 points on mobile, 50 on desktop
+                const isMobile = window.innerWidth < 768;
+                const maxPoints = isMobile ? 15 : 50;
+                const feeds = data.feeds.slice(-maxPoints);
+                
+                const labels = feeds.map(f => {
                     const d = new Date(f.created_at);
-                    return d.toLocaleTimeString();
+                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 });
                 
-                const temps = data.feeds.map(f => parseFloat(f.field1));
-                const hums = data.feeds.map(f => parseFloat(f.field2));
+                const temps = feeds.map(f => parseFloat(f.field1));
+                const hums = feeds.map(f => parseFloat(f.field2));
                 
                 updateChart(labels, temps, hums);
             } catch (error) {
@@ -672,6 +739,8 @@
                 chart.destroy();
             }
             
+            const isMobile = window.innerWidth < 768;
+            
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -685,8 +754,11 @@
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: 0,
+                            pointRadius: isMobile ? 0 : 3,
                             pointHoverRadius: 6,
+                            pointBackgroundColor: '#ec4899',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
                             yAxisID: 'y'
                         },
                         {
@@ -697,8 +769,11 @@
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: 0,
+                            pointRadius: isMobile ? 0 : 3,
                             pointHoverRadius: 6,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
                             yAxisID: 'y1'
                         }
                     ]
@@ -714,36 +789,79 @@
                         legend: {
                             labels: {
                                 color: '#a8a8ff',
-                                font: { size: 12, weight: '600' },
-                                padding: 20
+                                font: { 
+                                    size: isMobile ? 11 : 13, 
+                                    weight: '600',
+                                    family: "'Inter', 'Segoe UI', system-ui, sans-serif"
+                                },
+                                padding: isMobile ? 10 : 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
                             }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 5, 25, 0.9)',
+                            titleColor: '#a8a8ff',
+                            bodyColor: '#e0e0ff',
+                            borderColor: 'rgba(168, 85, 247, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            titleFont: { size: isMobile ? 12 : 14, weight: '600' },
+                            bodyFont: { size: isMobile ? 11 : 13 }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
-                            ticks: { color: '#7777aa' }
+                            grid: { 
+                                color: 'rgba(168, 85, 247, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: { 
+                                color: '#7777aa',
+                                font: { size: isMobile ? 9 : 11 },
+                                maxRotation: isMobile ? 45 : 0,
+                                minRotation: isMobile ? 45 : 0,
+                                autoSkip: true,
+                                maxTicksLimit: isMobile ? 6 : 12
+                            }
                         },
                         y: {
                             type: 'linear',
                             position: 'left',
-                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
-                            ticks: { color: '#ec4899' },
+                            grid: { 
+                                color: 'rgba(236, 72, 153, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: { 
+                                color: '#ec4899',
+                                font: { size: isMobile ? 10 : 12, weight: '600' },
+                                padding: isMobile ? 5 : 8
+                            },
                             title: {
-                                display: true,
+                                display: !isMobile,
                                 text: 'Temperature (°F)',
-                                color: '#ec4899'
+                                color: '#ec4899',
+                                font: { size: 12, weight: '600' }
                             }
                         },
                         y1: {
                             type: 'linear',
                             position: 'right',
-                            grid: { drawOnChartArea: false },
-                            ticks: { color: '#3b82f6' },
+                            grid: { 
+                                drawOnChartArea: false,
+                                drawBorder: false
+                            },
+                            ticks: { 
+                                color: '#3b82f6',
+                                font: { size: isMobile ? 10 : 12, weight: '600' },
+                                padding: isMobile ? 5 : 8
+                            },
                             title: {
-                                display: true,
+                                display: !isMobile,
                                 text: 'Humidity (%)',
-                                color: '#3b82f6'
+                                color: '#3b82f6',
+                                font: { size: 12, weight: '600' }
                             }
                         }
                     }
@@ -751,11 +869,21 @@
             });
         }
 
-        function showStatus(message, type) {
+        function showStatus(message, type, persistent = false) {
             const statusDiv = document.getElementById('statusDiv');
-            statusDiv.textContent = message;
+            statusDiv.innerHTML = `<span class="status-icon ${persistent ? 'pulse' : ''}">${getStatusIcon(type)}</span><span>${message}</span>`;
             statusDiv.className = `status ${type}`;
             statusDiv.classList.remove('hidden');
+        }
+        
+        function getStatusIcon(type) {
+            const icons = {
+                loading: '🔄',
+                success: '✓',
+                error: '⚠️',
+                offline: '⚠️'
+            };
+            return icons[type] || '•';
         }
     </script>
 </body>
