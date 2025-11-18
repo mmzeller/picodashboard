@@ -306,6 +306,76 @@
             flex-wrap: wrap;
         }
         
+        .card-stats {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-badge.high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        
+        .stat-badge.low {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+        }
+        
+        .stat-badge.normal {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+        
+        .alert-banner {
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            backdrop-filter: blur(20px);
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: alertPulse 2s ease-in-out infinite;
+        }
+        
+        .alert-banner.warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.5);
+        }
+        
+        .alert-banner.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        
+        @keyframes alertPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 20px var(--alert-glow); }
+            50% { opacity: 0.8; box-shadow: 0 0 30px var(--alert-glow); }
+        }
+        
+        .alert-banner.warning {
+            --alert-glow: rgba(251, 191, 36, 0.3);
+        }
+        
+        .alert-banner.danger {
+            --alert-glow: rgba(239, 68, 68, 0.3);
+        }
+        
         .card-time {
             color: #7777aa;
             font-size: 1.5em;
@@ -340,6 +410,96 @@
         
         .chart-section {
             padding: 15px;
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .time-range-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 10px;
+            color: #a8a8ff;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .time-range-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: #a855f7;
+        }
+        
+        .time-range-btn.active {
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+        
+        .export-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #14b8a6 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
+            margin-left: auto;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.5);
+        }
+        
+        .refresh-timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 10px;
+            color: #a8a8ff;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+        
+        .refresh-progress {
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+        
+        .refresh-progress svg {
+            transform: rotate(-90deg);
+        }
+        
+        .refresh-progress circle {
+            fill: none;
+            stroke-width: 3;
+        }
+        
+        .refresh-progress .bg {
+            stroke: rgba(168, 85, 247, 0.2);
+        }
+        
+        .refresh-progress .progress {
+            stroke: #a855f7;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s linear;
         }
         
         .chart-section h2 {
@@ -435,7 +595,8 @@
             .card-number { font-size: 1em; }
             .card-title { font-size: 0.7em; }
             .card-icon { font-size: 1.8em; }
-            .chart-container { height: 250px; padding: 10px; }
+            .chart-container { height: 350px; padding: 10px 5px; }
+            .chart-section { padding: 20px 15px; }
             .chart-section h2 { font-size: 1.3em; }
         }
         
@@ -447,6 +608,7 @@
             }
             .gauge-value { font-size: 2em; }
             .card-meta { font-size: 0.75em; }
+            .chart-container { height: 320px; }
         }
     </style>
 </head>
@@ -474,6 +636,8 @@
         
         <div id="statusDiv" class="status hidden"></div>
         
+        <div id="alertsDiv"></div>
+        
         <div id="dashboardContent" class="hidden">
             <div class="dashboard">
                 <div class="glass-panel card temp">
@@ -491,6 +655,10 @@
                             <div class="gauge-value" id="tempValue">--</div>
                             <div class="gauge-unit">°F</div>
                         </div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-badge high" id="tempHigh">High: --</div>
+                        <div class="stat-badge low" id="tempLow">Low: --</div>
                     </div>
                     <div class="card-meta">
                         <span class="card-time" id="tempTime">Initializing...</span>
@@ -514,6 +682,10 @@
                             <div class="gauge-unit">%</div>
                         </div>
                     </div>
+                    <div class="card-stats">
+                        <div class="stat-badge high" id="humHigh">High: --</div>
+                        <div class="stat-badge low" id="humLow">Low: --</div>
+                    </div>
                     <div class="card-meta">
                         <span class="card-time" id="humTime">Initializing...</span>
                         <span class="trend stable" id="humTrend">--</span>
@@ -536,6 +708,10 @@
                             <div class="gauge-unit">inHg</div>
                         </div>
                     </div>
+                    <div class="card-stats">
+                        <div class="stat-badge high" id="presHigh">High: --</div>
+                        <div class="stat-badge low" id="presLow">Low: --</div>
+                    </div>
                     <div class="card-meta">
                         <span class="card-time" id="presTime">Initializing...</span>
                         <span class="trend stable" id="presTrend">--</span>
@@ -543,8 +719,34 @@
                 </div>
             </div>
             
+            <div class="glass-panel">
+                <div style="text-align: center; padding: 20px;">
+                    <div class="card-stats" style="justify-content: center;">
+                        <div class="stat-badge normal">
+                            <strong>Feels Like:</strong> <span id="feelsLike">--</span>°F
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="glass-panel chart-section">
                 <h2>📊 Historical Data Stream</h2>
+                <div class="chart-controls">
+                    <button class="time-range-btn" onclick="setTimeRange(60, this)">1 Hour</button>
+                    <button class="time-range-btn" onclick="setTimeRange(360, this)">6 Hours</button>
+                    <button class="time-range-btn active" onclick="setTimeRange(1440, this)">24 Hours</button>
+                    <button class="time-range-btn" onclick="setTimeRange(10080, this)">7 Days</button>
+                    <button class="export-btn" onclick="exportData()">💾 Export CSV</button>
+                    <div class="refresh-timer">
+                        <div class="refresh-progress">
+                            <svg width="40" height="40">
+                                <circle class="bg" cx="20" cy="20" r="16"></circle>
+                                <circle class="progress" cx="20" cy="20" r="16" id="refreshCircle"></circle>
+                            </svg>
+                        </div>
+                        <span id="refreshText">Next: 20s</span>
+                    </div>
+                </div>
                 <div class="chart-container">
                     <canvas id="historyChart"></canvas>
                 </div>
@@ -562,6 +764,16 @@
         let previousData = {};
         let lastUpdateTime = null;
         let offlineThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
+        let currentTimeRange = 1440; // 24 hours in minutes
+        let allHistoricalData = [];
+        let refreshCountdown = 20;
+        let refreshTimer;
+        
+        // Alert thresholds
+        const TEMP_HIGH = 85; // °F
+        const TEMP_LOW = 50; // °F
+        const HUMIDITY_HIGH = 70; // %
+        const HUMIDITY_LOW = 20; // %
 
         // Auto-start dashboard on load
         window.addEventListener('DOMContentLoaded', function() {
@@ -571,7 +783,26 @@
             updateInterval = setInterval(fetchData, 20000);
             // Check offline status every 30 seconds
             setInterval(checkOfflineStatus, 30000);
+            // Start refresh countdown
+            startRefreshCountdown();
         });
+        
+        function startRefreshCountdown() {
+            const circumference = 2 * Math.PI * 16;
+            const circle = document.getElementById('refreshCircle');
+            circle.style.strokeDasharray = circumference;
+            
+            refreshTimer = setInterval(() => {
+                refreshCountdown--;
+                if (refreshCountdown <= 0) {
+                    refreshCountdown = 20;
+                }
+                
+                const progress = (refreshCountdown / 20) * circumference;
+                circle.style.strokeDashoffset = circumference - progress;
+                document.getElementById('refreshText').textContent = `Next: ${refreshCountdown}s`;
+            }, 1000);
+        }
 
         function startDashboard() {
             channelId = document.getElementById('channelId').value.trim();
@@ -674,6 +905,82 @@
             updateTrend('temp', temp);
             updateTrend('hum', humidity);
             updateTrend('pres', pressure);
+            
+            // Calculate feels like temperature (heat index)
+            const feelsLike = calculateFeelsLike(temp, humidity);
+            document.getElementById('feelsLike').textContent = feelsLike.toFixed(1);
+            
+            // Check for alerts
+            checkAlerts(temp, humidity, pressure);
+            
+            // Reset refresh countdown
+            refreshCountdown = 20;
+        }
+        
+        function calculateFeelsLike(tempF, humidity) {
+            // Heat Index formula (Steadman's formula)
+            if (tempF < 80) return tempF; // Heat index only applies above 80°F
+            
+            const T = tempF;
+            const RH = humidity;
+            
+            let HI = -42.379 + 2.04901523*T + 10.14333127*RH - 0.22475541*T*RH 
+                     - 0.00683783*T*T - 0.05481717*RH*RH + 0.00122874*T*T*RH 
+                     + 0.00085282*T*RH*RH - 0.00000199*T*T*RH*RH;
+            
+            // Adjustments for low humidity or temperature
+            if (RH < 13 && T >= 80 && T <= 112) {
+                HI = HI - ((13-RH)/4)*Math.sqrt((17-Math.abs(T-95))/17);
+            } else if (RH > 85 && T >= 80 && T <= 87) {
+                HI = HI + ((RH-85)/10) * ((87-T)/5);
+            }
+            
+            return HI;
+        }
+        
+        function checkAlerts(temp, humidity, pressure) {
+            const alertsDiv = document.getElementById('alertsDiv');
+            let alerts = [];
+            
+            if (temp > TEMP_HIGH) {
+                alerts.push({
+                    type: 'danger',
+                    icon: '🔥',
+                    message: `High Temperature Alert: ${temp.toFixed(1)}°F (Threshold: ${TEMP_HIGH}°F)`
+                });
+            } else if (temp < TEMP_LOW) {
+                alerts.push({
+                    type: 'warning',
+                    icon: '❄️',
+                    message: `Low Temperature Alert: ${temp.toFixed(1)}°F (Threshold: ${TEMP_LOW}°F)`
+                });
+            }
+            
+            if (humidity > HUMIDITY_HIGH) {
+                alerts.push({
+                    type: 'warning',
+                    icon: '💧',
+                    message: `High Humidity Alert: ${humidity.toFixed(1)}% (Threshold: ${HUMIDITY_HIGH}%)`
+                });
+            } else if (humidity < HUMIDITY_LOW) {
+                alerts.push({
+                    type: 'warning',
+                    icon: '🏜️',
+                    message: `Low Humidity Alert: ${humidity.toFixed(1)}% (Threshold: ${HUMIDITY_LOW}%)`
+                });
+            }
+            
+            // Display alerts
+            if (alerts.length > 0) {
+                alertsDiv.innerHTML = alerts.map(alert => 
+                    `<div class="alert-banner ${alert.type}">
+                        <span style="font-size: 1.5em;">${alert.icon}</span>
+                        <span>${alert.message}</span>
+                    </div>`
+                ).join('');
+            } else {
+                alertsDiv.innerHTML = '';
+            }
         }
 
         function updateGauge(type, value, min, max) {
@@ -705,24 +1012,117 @@
 
         async function fetchHistoricalData() {
             try {
-                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=100`;
+                // Fetch more data based on time range
+                let results = 8000; // Max allowed by ThingSpeak
+                if (currentTimeRange <= 60) results = 60;
+                else if (currentTimeRange <= 360) results = 360;
+                else if (currentTimeRange <= 1440) results = 1440;
+                
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=${results}`;
                 const response = await fetch(url);
                 const data = await response.json();
                 
                 if (!data.feeds || data.feeds.length === 0) return;
                 
-                const labels = data.feeds.map(f => {
-                    const d = new Date(f.created_at);
-                    return d.toLocaleTimeString();
-                });
+                allHistoricalData = data.feeds;
                 
-                const temps = data.feeds.map(f => parseFloat(f.field1));
-                const hums = data.feeds.map(f => parseFloat(f.field2));
+                // Calculate min/max for today
+                const now = new Date();
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const todayData = data.feeds.filter(f => new Date(f.created_at) >= startOfDay);
                 
-                updateChart(labels, temps, hums);
+                if (todayData.length > 0) {
+                    const temps = todayData.map(f => parseFloat(f.field1));
+                    const hums = todayData.map(f => parseFloat(f.field2));
+                    const presses = todayData.map(f => parseFloat(f.field3));
+                    
+                    document.getElementById('tempHigh').textContent = `High: ${Math.max(...temps).toFixed(1)}°F`;
+                    document.getElementById('tempLow').textContent = `Low: ${Math.min(...temps).toFixed(1)}°F`;
+                    document.getElementById('humHigh').textContent = `High: ${Math.max(...hums).toFixed(1)}%`;
+                    document.getElementById('humLow').textContent = `Low: ${Math.min(...hums).toFixed(1)}%`;
+                    document.getElementById('presHigh').textContent = `High: ${Math.max(...presses).toFixed(2)}"`;
+                    document.getElementById('presLow').textContent = `Low: ${Math.min(...presses).toFixed(2)}"`;
+                }
+                
+                updateChartForTimeRange();
             } catch (error) {
                 console.error('Error fetching historical data:', error);
             }
+        }
+        
+        function setTimeRange(minutes, button) {
+            currentTimeRange = minutes;
+            
+            // Update active button
+            document.querySelectorAll('.time-range-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            updateChartForTimeRange();
+        }
+        
+        function updateChartForTimeRange() {
+            if (allHistoricalData.length === 0) return;
+            
+            // Filter data based on time range
+            const now = new Date();
+            const cutoffTime = new Date(now.getTime() - currentTimeRange * 60 * 1000);
+            const filteredData = allHistoricalData.filter(f => new Date(f.created_at) >= cutoffTime);
+            
+            if (filteredData.length === 0) return;
+            
+            // Determine sampling rate based on range
+            const isMobile = window.innerWidth < 768;
+            let maxPoints = isMobile ? 20 : 50;
+            if (currentTimeRange > 1440) maxPoints = isMobile ? 30 : 100;
+            
+            const step = Math.ceil(filteredData.length / maxPoints);
+            const sampledData = filteredData.filter((_, i) => i % step === 0);
+            
+            const labels = sampledData.map(f => {
+                const d = new Date(f.created_at);
+                if (currentTimeRange <= 360) {
+                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else {
+                    return d.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit' });
+                }
+            });
+            
+            const temps = sampledData.map(f => parseFloat(f.field1));
+            const hums = sampledData.map(f => parseFloat(f.field2));
+            
+            updateChart(labels, temps, hums);
+        }
+        
+        function exportData() {
+            if (allHistoricalData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            // Get data from selected time range
+            const now = new Date();
+            const cutoffTime = new Date(now.getTime() - currentTimeRange * 60 * 1000);
+            const exportData = allHistoricalData.filter(f => new Date(f.created_at) >= cutoffTime);
+            
+            // Create CSV
+            let csv = 'Timestamp,Temperature (°F),Humidity (%),Pressure (inHg)\n';
+            exportData.forEach(feed => {
+                const timestamp = new Date(feed.created_at).toLocaleString();
+                csv += `${timestamp},${feed.field1},${feed.field2},${feed.field3}\n`;
+            });
+            
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pico-data-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
 
         function updateChart(labels, temps, hums) {
@@ -731,6 +1131,8 @@
             if (chart) {
                 chart.destroy();
             }
+            
+            const isMobile = window.innerWidth < 768;
             
             chart = new Chart(ctx, {
                 type: 'line',
@@ -745,8 +1147,11 @@
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: 0,
+                            pointRadius: isMobile ? 0 : 3,
                             pointHoverRadius: 6,
+                            pointBackgroundColor: '#ec4899',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
                             yAxisID: 'y'
                         },
                         {
@@ -757,8 +1162,11 @@
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: 0,
+                            pointRadius: isMobile ? 0 : 3,
                             pointHoverRadius: 6,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
                             yAxisID: 'y1'
                         }
                     ]
@@ -774,36 +1182,79 @@
                         legend: {
                             labels: {
                                 color: '#a8a8ff',
-                                font: { size: 12, weight: '600' },
-                                padding: 20
+                                font: { 
+                                    size: isMobile ? 11 : 13, 
+                                    weight: '600',
+                                    family: "'Inter', 'Segoe UI', system-ui, sans-serif"
+                                },
+                                padding: isMobile ? 10 : 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
                             }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 5, 25, 0.9)',
+                            titleColor: '#a8a8ff',
+                            bodyColor: '#e0e0ff',
+                            borderColor: 'rgba(168, 85, 247, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            titleFont: { size: isMobile ? 12 : 14, weight: '600' },
+                            bodyFont: { size: isMobile ? 11 : 13 }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
-                            ticks: { color: '#7777aa' }
+                            grid: { 
+                                color: 'rgba(168, 85, 247, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: { 
+                                color: '#7777aa',
+                                font: { size: isMobile ? 9 : 11 },
+                                maxRotation: isMobile ? 45 : 0,
+                                minRotation: isMobile ? 45 : 0,
+                                autoSkip: true,
+                                maxTicksLimit: isMobile ? 6 : 12
+                            }
                         },
                         y: {
                             type: 'linear',
                             position: 'left',
-                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
-                            ticks: { color: '#ec4899' },
+                            grid: { 
+                                color: 'rgba(236, 72, 153, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: { 
+                                color: '#ec4899',
+                                font: { size: isMobile ? 10 : 12, weight: '600' },
+                                padding: isMobile ? 5 : 8
+                            },
                             title: {
-                                display: true,
+                                display: !isMobile,
                                 text: 'Temperature (°F)',
-                                color: '#ec4899'
+                                color: '#ec4899',
+                                font: { size: 12, weight: '600' }
                             }
                         },
                         y1: {
                             type: 'linear',
                             position: 'right',
-                            grid: { drawOnChartArea: false },
-                            ticks: { color: '#3b82f6' },
+                            grid: { 
+                                drawOnChartArea: false,
+                                drawBorder: false
+                            },
+                            ticks: { 
+                                color: '#3b82f6',
+                                font: { size: isMobile ? 10 : 12, weight: '600' },
+                                padding: isMobile ? 5 : 8
+                            },
                             title: {
-                                display: true,
+                                display: !isMobile,
                                 text: 'Humidity (%)',
-                                color: '#3b82f6'
+                                color: '#3b82f6',
+                                font: { size: 12, weight: '600' }
                             }
                         }
                     }
