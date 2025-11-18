@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Station Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: radial-gradient(ellipse at top, #1a0b2e 0%, #0f0519 50%, #000000 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0ff;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            animation: drift 30s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(5deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 50%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+        }
+        
+        .subtitle {
+            color: #a8a8ff;
+            font-size: 0.9em;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .config-panel {
+            margin-bottom: 40px;
+        }
+        
+        .config-panel h2 {
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #b8b8ff;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            color: #e0e0ff;
+            font-size: 1em;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.1);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 16px 50px;
+            border-radius: 14px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(168, 85, 247, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            position: relative;
+            padding: 30px 20px;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient);
+            opacity: 0.8;
+        }
+        
+        .card.temp {
+            --gradient: linear-gradient(90deg, #ec4899, #f97316);
+            --glow-color: rgba(236, 72, 153, 0.3);
+        }
+        
+        .card.humidity {
+            --gradient: linear-gradient(90deg, #a855f7, #3b82f6);
+            --glow-color: rgba(168, 85, 247, 0.3);
+        }
+        
+        .card.pressure {
+            --gradient: linear-gradient(90deg, #3b82f6, #14b8a6);
+            --glow-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .card-number {
+            font-size: 1.2em;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-title {
+            font-size: 0.75em;
+            color: #8888ff;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            filter: drop-shadow(0 0 10px var(--glow-color));
+        }
+        
+        .gauge-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 15px auto;
+        }
+        
+        .gauge-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 135deg,
+                transparent 0deg,
+                rgba(255, 255, 255, 0.05) 270deg,
+                transparent 270deg
+            );
+        }
+        
+        .gauge-progress {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 135deg,
+                var(--gradient) 0deg,
+                var(--gradient) var(--progress, 0deg),
+                transparent var(--progress, 0deg)
+            );
+            filter: drop-shadow(0 0 20px var(--glow-color));
+        }
+        
+        .gauge-inner {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(26, 11, 46, 0.8) 0%, rgba(15, 5, 25, 0.9) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .gauge-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+        
+        .gauge-unit {
+            font-size: 0.9em;
+            color: #8888ff;
+            margin-top: 5px;
+        }
+        
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8em;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .card-time {
+            color: #7777aa;
+            font-size: 0.9em;
+        }
+        
+        .trend {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8em;
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+        
+        .trend.up {
+            background: rgba(236, 72, 153, 0.2);
+            color: #ec4899;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+        
+        .trend.down {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .trend.stable {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        
+        .chart-section {
+            padding: 25px;
+        }
+        
+        .chart-section h2 {
+            background: linear-gradient(135deg, #a855f7, #14b8a6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .status {
+            text-align: center;
+            padding: 18px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status.loading {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+        }
+        
+        .status.success {
+            background: rgba(20, 184, 166, 0.15);
+            color: #5eead4;
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.2);
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+            h1 { font-size: 2em; }
+            .subtitle { font-size: 0.8em; letter-spacing: 1px; }
+            .input-row { grid-template-columns: 1fr; }
+            .dashboard { 
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .card { padding: 20px 15px; }
+            .gauge-container { 
+                width: 160px; 
+                height: 160px;
+                margin: 10px auto;
+            }
+            .gauge-value { font-size: 2.2em; }
+            .card-header { margin-bottom: 15px; }
+            .card-number { font-size: 1em; }
+            .card-title { font-size: 0.7em; }
+            .card-icon { font-size: 1.8em; }
+            .chart-container { height: 250px; padding: 10px; }
+            .chart-section h2 { font-size: 1.3em; }
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8em; }
+            .gauge-container { 
+                width: 140px; 
+                height: 140px;
+            }
+            .gauge-value { font-size: 2em; }
+            .card-meta { font-size: 0.75em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ WEATHER STATION</h1>
+            <div class="subtitle">Real-time Environmental Monitoring</div>
+        </header>
+        
+        <div class="glass-panel config-panel" id="configPanel" style="display: none;">
+            <h2>Initialize Connection</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="channelId">Channel ID</label>
+                    <input type="text" id="channelId" placeholder="1234567">
+                </div>
+                <div class="input-group">
+                    <label for="readKey">Read API Key</label>
+                    <input type="text" id="readKey" placeholder="9T856LQWFSUDN4I3">
+                </div>
+            </div>
+            <button class="btn" onclick="startDashboard()">🚀 Launch Dashboard</button>
+        </div>
+        
+        <div id="statusDiv" class="status hidden"></div>
+        
+        <div id="dashboardContent" class="hidden">
+            <div class="dashboard">
+                <div class="glass-panel card temp">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="card-number">01</div>
+                            <div class="card-title">Temperature</div>
+                        </div>
+                        <div class="card-icon">🌡️</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-bg"></div>
+                        <div class="gauge-progress" id="tempGauge"></div>
+                        <div class="gauge-inner">
+                            <div class="gauge-value" id="tempValue">--</div>
+                            <div class="gauge-unit">°F</div>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-time" id="tempTime">Initializing...</span>
+                        <span class="trend stable" id="tempTrend">--</span>
+                    </div>
+                </div>
+                
+                <div class="glass-panel card humidity">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="card-number">02</div>
+                            <div class="card-title">Humidity</div>
+                        </div>
+                        <div class="card-icon">💧</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-bg"></div>
+                        <div class="gauge-progress" id="humGauge"></div>
+                        <div class="gauge-inner">
+                            <div class="gauge-value" id="humValue">--</div>
+                            <div class="gauge-unit">%</div>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-time" id="humTime">Initializing...</span>
+                        <span class="trend stable" id="humTrend">--</span>
+                    </div>
+                </div>
+                
+                <div class="glass-panel card pressure">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="card-number">03</div>
+                            <div class="card-title">Pressure</div>
+                        </div>
+                        <div class="card-icon">🌍</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-bg"></div>
+                        <div class="gauge-progress" id="presGauge"></div>
+                        <div class="gauge-inner">
+                            <div class="gauge-value" id="presValue">--</div>
+                            <div class="gauge-unit">inHg</div>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-time" id="presTime">Initializing...</span>
+                        <span class="trend stable" id="presTrend">--</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-panel chart-section">
+                <h2>📊 Historical Data Stream</h2>
+                <div class="chart-container">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Pre-configured credentials
+        let channelId = '3167437';
+        let readKey = '9T856LQWFSUDN4I3';
+        let updateInterval;
+        let chart;
+        let previousData = {};
+
+        // Auto-start dashboard on load
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('dashboardContent').classList.remove('hidden');
+            showStatus('🔄 Establishing connection...', 'loading');
+            fetchData();
+            updateInterval = setInterval(fetchData, 20000);
+        });
+
+        function startDashboard() {
+            channelId = document.getElementById('channelId').value.trim();
+            readKey = document.getElementById('readKey').value.trim();
+            
+            if (!channelId || !readKey) {
+                showStatus('⚠️ Please enter both Channel ID and Read API Key', 'error');
+                return;
+            }
+            
+            document.getElementById('configPanel').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.remove('hidden');
+            
+            showStatus('🔄 Establishing connection...', 'loading');
+            fetchData();
+            updateInterval = setInterval(fetchData, 20000);
+        }
+
+        async function fetchData() {
+            try {
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=1`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data from ThingSpeak');
+                }
+                
+                const data = await response.json();
+                
+                if (!data.feeds || data.feeds.length === 0) {
+                    throw new Error('No data available yet');
+                }
+                
+                const feed = data.feeds[0];
+                updateDisplay(feed);
+                fetchHistoricalData();
+                
+                showStatus('✓ Data synchronized', 'success');
+                setTimeout(() => {
+                    document.getElementById('statusDiv').classList.add('hidden');
+                }, 2000);
+            } catch (error) {
+                showStatus('⚠️ Connection error: ' + error.message, 'error');
+            }
+        }
+
+        function updateDisplay(feed) {
+            const temp = parseFloat(feed.field1);
+            const humidity = parseFloat(feed.field2);
+            const pressure = parseFloat(feed.field3);
+            const timestamp = new Date(feed.created_at);
+            
+            // Update values and gauges
+            updateGauge('temp', temp, 0, 120);
+            updateGauge('hum', humidity, 0, 100);
+            updateGauge('pres', pressure, 28, 31);
+            
+            document.getElementById('tempValue').textContent = temp.toFixed(1);
+            document.getElementById('humValue').textContent = humidity.toFixed(1);
+            document.getElementById('presValue').textContent = pressure.toFixed(2);
+            
+            const timeStr = timestamp.toLocaleTimeString();
+            document.getElementById('tempTime').textContent = timeStr;
+            document.getElementById('humTime').textContent = timeStr;
+            document.getElementById('presTime').textContent = timeStr;
+            
+            updateTrend('temp', temp);
+            updateTrend('hum', humidity);
+            updateTrend('pres', pressure);
+        }
+
+        function updateGauge(type, value, min, max) {
+            const percentage = ((value - min) / (max - min)) * 100;
+            const degrees = (percentage / 100) * 270;
+            const gauge = document.getElementById(type + 'Gauge');
+            gauge.style.setProperty('--progress', degrees + 'deg');
+        }
+
+        function updateTrend(type, value) {
+            const trendEl = document.getElementById(type + 'Trend');
+            
+            if (previousData[type] !== undefined) {
+                const diff = value - previousData[type];
+                if (Math.abs(diff) < 0.1) {
+                    trendEl.textContent = '→ Stable';
+                    trendEl.className = 'trend stable';
+                } else if (diff > 0) {
+                    trendEl.textContent = '↑ Rising';
+                    trendEl.className = 'trend up';
+                } else {
+                    trendEl.textContent = '↓ Falling';
+                    trendEl.className = 'trend down';
+                }
+            }
+            
+            previousData[type] = value;
+        }
+
+        async function fetchHistoricalData() {
+            try {
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=100`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.feeds || data.feeds.length === 0) return;
+                
+                const labels = data.feeds.map(f => {
+                    const d = new Date(f.created_at);
+                    return d.toLocaleTimeString();
+                });
+                
+                const temps = data.feeds.map(f => parseFloat(f.field1));
+                const hums = data.feeds.map(f => parseFloat(f.field2));
+                
+                updateChart(labels, temps, hums);
+            } catch (error) {
+                console.error('Error fetching historical data:', error);
+            }
+        }
+
+        function updateChart(labels, temps, hums) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Temperature (°F)',
+                            data: temps,
+                            borderColor: '#ec4899',
+                            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Humidity (%)',
+                            data: hums,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#a8a8ff',
+                                font: { size: 12, weight: '600' },
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
+                            ticks: { color: '#7777aa' }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
+                            ticks: { color: '#ec4899' },
+                            title: {
+                                display: true,
+                                text: 'Temperature (°F)',
+                                color: '#ec4899'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#3b82f6' },
+                            title: {
+                                display: true,
+                                text: 'Humidity (%)',
+                                color: '#3b82f6'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
