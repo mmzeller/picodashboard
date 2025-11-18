@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Dashboard</title>
+    <title>Weather Station Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -435,8 +435,7 @@
             .card-number { font-size: 1em; }
             .card-title { font-size: 0.7em; }
             .card-icon { font-size: 1.8em; }
-            .chart-container { height: 350px; padding: 10px 5px; }
-            .chart-section { padding: 20px 15px; }
+            .chart-container { height: 250px; padding: 10px; }
             .chart-section h2 { font-size: 1.3em; }
         }
         
@@ -448,7 +447,6 @@
             }
             .gauge-value { font-size: 2em; }
             .card-meta { font-size: 0.75em; }
-            .chart-container { height: 320px; }
         }
     </style>
 </head>
@@ -707,24 +705,19 @@
 
         async function fetchHistoricalData() {
             try {
-                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=50`;
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=100`;
                 const response = await fetch(url);
                 const data = await response.json();
                 
                 if (!data.feeds || data.feeds.length === 0) return;
                 
-                // Show only last 20 points on mobile, 50 on desktop
-                const isMobile = window.innerWidth < 768;
-                const maxPoints = isMobile ? 15 : 50;
-                const feeds = data.feeds.slice(-maxPoints);
-                
-                const labels = feeds.map(f => {
+                const labels = data.feeds.map(f => {
                     const d = new Date(f.created_at);
-                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return d.toLocaleTimeString();
                 });
                 
-                const temps = feeds.map(f => parseFloat(f.field1));
-                const hums = feeds.map(f => parseFloat(f.field2));
+                const temps = data.feeds.map(f => parseFloat(f.field1));
+                const hums = data.feeds.map(f => parseFloat(f.field2));
                 
                 updateChart(labels, temps, hums);
             } catch (error) {
@@ -739,8 +732,6 @@
                 chart.destroy();
             }
             
-            const isMobile = window.innerWidth < 768;
-            
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -754,11 +745,8 @@
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: isMobile ? 0 : 3,
+                            pointRadius: 0,
                             pointHoverRadius: 6,
-                            pointBackgroundColor: '#ec4899',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
                             yAxisID: 'y'
                         },
                         {
@@ -769,11 +757,8 @@
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: isMobile ? 0 : 3,
+                            pointRadius: 0,
                             pointHoverRadius: 6,
-                            pointBackgroundColor: '#3b82f6',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
                             yAxisID: 'y1'
                         }
                     ]
@@ -789,79 +774,36 @@
                         legend: {
                             labels: {
                                 color: '#a8a8ff',
-                                font: { 
-                                    size: isMobile ? 11 : 13, 
-                                    weight: '600',
-                                    family: "'Inter', 'Segoe UI', system-ui, sans-serif"
-                                },
-                                padding: isMobile ? 10 : 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
+                                font: { size: 12, weight: '600' },
+                                padding: 20
                             }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 5, 25, 0.9)',
-                            titleColor: '#a8a8ff',
-                            bodyColor: '#e0e0ff',
-                            borderColor: 'rgba(168, 85, 247, 0.3)',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: true,
-                            titleFont: { size: isMobile ? 12 : 14, weight: '600' },
-                            bodyFont: { size: isMobile ? 11 : 13 }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { 
-                                color: 'rgba(168, 85, 247, 0.1)',
-                                drawBorder: false
-                            },
-                            ticks: { 
-                                color: '#7777aa',
-                                font: { size: isMobile ? 9 : 11 },
-                                maxRotation: isMobile ? 45 : 0,
-                                minRotation: isMobile ? 45 : 0,
-                                autoSkip: true,
-                                maxTicksLimit: isMobile ? 6 : 12
-                            }
+                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
+                            ticks: { color: '#7777aa' }
                         },
                         y: {
                             type: 'linear',
                             position: 'left',
-                            grid: { 
-                                color: 'rgba(236, 72, 153, 0.1)',
-                                drawBorder: false
-                            },
-                            ticks: { 
-                                color: '#ec4899',
-                                font: { size: isMobile ? 10 : 12, weight: '600' },
-                                padding: isMobile ? 5 : 8
-                            },
+                            grid: { color: 'rgba(168, 85, 247, 0.1)' },
+                            ticks: { color: '#ec4899' },
                             title: {
-                                display: !isMobile,
+                                display: true,
                                 text: 'Temperature (°F)',
-                                color: '#ec4899',
-                                font: { size: 12, weight: '600' }
+                                color: '#ec4899'
                             }
                         },
                         y1: {
                             type: 'linear',
                             position: 'right',
-                            grid: { 
-                                drawOnChartArea: false,
-                                drawBorder: false
-                            },
-                            ticks: { 
-                                color: '#3b82f6',
-                                font: { size: isMobile ? 10 : 12, weight: '600' },
-                                padding: isMobile ? 5 : 8
-                            },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#3b82f6' },
                             title: {
-                                display: !isMobile,
+                                display: true,
                                 text: 'Humidity (%)',
-                                color: '#3b82f6',
-                                font: { size: 12, weight: '600' }
+                                color: '#3b82f6'
                             }
                         }
                     }
