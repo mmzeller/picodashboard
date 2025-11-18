@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Station Dashboard</title>
+    <title>Pico Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -77,10 +77,10 @@
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            border-radius: 15px;
             padding: 25px;
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 8px 32px rgba(0, 0, 0, 0.5),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
@@ -160,13 +160,13 @@
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
         
         .card {
             position: relative;
-            padding: 30px 20px;
+            padding: 20px 15px;
             overflow: hidden;
         }
         
@@ -200,7 +200,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
         
         .card-title-group {
@@ -219,7 +219,7 @@
         }
         
         .card-title {
-            font-size: 0.75em;
+            font-size: 1.0em;
             color: #8888ff;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -266,10 +266,10 @@
         
         .gauge-inner {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            bottom: 10px;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(26, 11, 46, 0.8) 0%, rgba(15, 5, 25, 0.9) 100%);
             display: flex;
@@ -290,7 +290,7 @@
         }
         
         .gauge-unit {
-            font-size: 0.9em;
+            font-size: 1.2em;
             color: #8888ff;
             margin-top: 5px;
         }
@@ -308,14 +308,14 @@
         
         .card-time {
             color: #7777aa;
-            font-size: 0.9em;
+            font-size: 1.5em;
         }
         
         .trend {
             padding: 5px 12px;
             border-radius: 20px;
             font-weight: 600;
-            font-size: 0.8em;
+            font-size: 1.0em;
             backdrop-filter: blur(10px);
             white-space: nowrap;
         }
@@ -339,7 +339,7 @@
         }
         
         .chart-section {
-            padding: 25px;
+            padding: 15px;
         }
         
         .chart-section h2 {
@@ -362,16 +362,16 @@
         
         .status {
             text-align: center;
-            padding: 18px;
+            padding: 10px;
             border-radius: 16px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-weight: 600;
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 5px;
         }
         
         .status.loading {
@@ -453,7 +453,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>⚡ WEATHER STATION</h1>
+            <h1>⚡ Pico Dashboard</h1>
             <div class="subtitle">Real-time Environmental Monitoring</div>
         </header>
         
