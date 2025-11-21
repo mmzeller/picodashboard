@@ -170,6 +170,26 @@
             overflow: hidden;
         }
         
+        .dual-gauge-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .gauge-wrapper {
+            text-align: center;
+        }
+        
+        .gauge-label {
+            font-size: 0.85em;
+            color: #8888ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
         .card::before {
             content: '';
             position: absolute;
@@ -194,6 +214,11 @@
         .card.pressure {
             --gradient: linear-gradient(90deg, #3b82f6, #14b8a6);
             --glow-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .card.comfort {
+            --gradient: linear-gradient(90deg, #a855f7, #ec4899);
+            --glow-color: rgba(168, 85, 247, 0.3);
         }
         
         .card-header {
@@ -232,9 +257,9 @@
         
         .gauge-container {
             position: relative;
-            width: 180px;
-            height: 180px;
-            margin: 15px auto;
+            width: 140px;
+            height: 140px;
+            margin: 10px auto;
         }
         
         .gauge-bg {
@@ -280,7 +305,7 @@
         }
         
         .gauge-value {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: 700;
             background: var(--gradient);
             -webkit-background-clip: text;
@@ -290,7 +315,7 @@
         }
         
         .gauge-unit {
-            font-size: 1.2em;
+            font-size: 1em;
             color: #8888ff;
             margin-top: 5px;
         }
@@ -348,6 +373,14 @@
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .comfort-gauges {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
         }
         
         .weather-comparison {
@@ -426,10 +459,10 @@
             border: 1px solid rgba(168, 85, 247, 0.3);
             border-radius: 12px;
             color: #c084fc;
-            font-size: 1em;
+            font-size: 0.95em;
             font-weight: 600;
-            margin-top: 15px;
-            display: inline-block;
+            text-align: center;
+            width: 100%;
         }
         
         .weather-config {
@@ -690,12 +723,16 @@
                 gap: 15px;
             }
             .card { padding: 20px 15px; }
+            .dual-gauge-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
             .gauge-container { 
-                width: 160px; 
-                height: 160px;
+                width: 140px; 
+                height: 140px;
                 margin: 10px auto;
             }
-            .gauge-value { font-size: 2.2em; }
+            .gauge-value { font-size: 1.8em; }
             .card-header { margin-bottom: 15px; }
             .card-number { font-size: 1em; }
             .card-title { font-size: 0.7em; }
@@ -703,15 +740,16 @@
             .chart-container { height: 350px; padding: 10px 5px; }
             .chart-section { padding: 20px 15px; }
             .chart-section h2 { font-size: 1.3em; }
+            .comfort-gauges { grid-template-columns: 1fr; }
         }
         
         @media (max-width: 480px) {
             h1 { font-size: 1.8em; }
             .gauge-container { 
-                width: 140px; 
-                height: 140px;
+                width: 130px; 
+                height: 130px;
             }
-            .gauge-value { font-size: 2em; }
+            .gauge-value { font-size: 1.6em; }
             .card-meta { font-size: 0.75em; }
             .chart-container { height: 320px; }
         }
@@ -745,52 +783,10 @@
         
         <div id="dashboardContent" class="hidden">
             <div class="glass-panel weather-config" id="weatherConfig">
-                <h3 style="color: #a8a8ff; margin-bottom: 15px;">🌤️ Add Outdoor Weather</h3>
+                <h3 style="color: #a8a8ff; margin-bottom: 15px;">🌤️ Add Outside Weather</h3>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <input type="text" id="locationInput" placeholder="Enter city or zip code" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; color: #e0e0ff;">
                     <button class="btn" style="padding: 12px 30px; font-size: 1em;" onclick="setupWeather()">Add Weather</button>
-                </div>
-            </div>
-            
-            <div id="weatherSection" class="hidden">
-                <div class="weather-comparison">
-                    <div class="glass-panel weather-card">
-                        <div class="weather-header">
-                            <span class="weather-icon">🏠</span>
-                            <h3>Indoor</h3>
-                        </div>
-                        <div class="weather-main" id="indoorTempDisplay">--°F</div>
-                        <div class="weather-details">
-                            <div class="weather-detail">
-                                <div class="weather-detail-label">Humidity</div>
-                                <div class="weather-detail-value" id="indoorHumDisplay">--%</div>
-                            </div>
-                            <div class="weather-detail">
-                                <div class="weather-detail-label">Pressure</div>
-                                <div class="weather-detail-value" id="indoorPresDisplay">--</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glass-panel weather-card">
-                        <div class="weather-header">
-                            <span class="weather-icon" id="outdoorIcon">🌤️</span>
-                            <h3>Outdoor</h3>
-                        </div>
-                        <div class="weather-main" id="outdoorTempDisplay">--°F</div>
-                        <div style="color: #8888ff; margin: 5px 0;" id="weatherDesc">--</div>
-                        <div class="weather-details">
-                            <div class="weather-detail">
-                                <div class="weather-detail-label">Humidity</div>
-                                <div class="weather-detail-value" id="outdoorHumDisplay">--%</div>
-                            </div>
-                            <div class="weather-detail">
-                                <div class="weather-detail-label">Feels Like</div>
-                                <div class="weather-detail-value" id="outdoorFeelsDisplay">--°F</div>
-                            </div>
-                        </div>
-                        <div class="comparison-badge" id="comparisonText">--</div>
-                    </div>
                 </div>
             </div>
             
@@ -803,12 +799,28 @@
                         </div>
                         <div class="card-icon">🌡️</div>
                     </div>
-                    <div class="gauge-container">
-                        <div class="gauge-bg"></div>
-                        <div class="gauge-progress" id="tempGauge"></div>
-                        <div class="gauge-inner">
-                            <div class="gauge-value" id="tempValue">--</div>
-                            <div class="gauge-unit">°F</div>
+                    <div class="dual-gauge-container">
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Inside</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="tempGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="tempValue">--</div>
+                                    <div class="gauge-unit">°F</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Outside <span id="weatherIcon">🌤️</span></div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="tempOutGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="tempOutValue">--</div>
+                                    <div class="gauge-unit">°F</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-stats">
@@ -829,12 +841,28 @@
                         </div>
                         <div class="card-icon">💧</div>
                     </div>
-                    <div class="gauge-container">
-                        <div class="gauge-bg"></div>
-                        <div class="gauge-progress" id="humGauge"></div>
-                        <div class="gauge-inner">
-                            <div class="gauge-value" id="humValue">--</div>
-                            <div class="gauge-unit">%</div>
+                    <div class="dual-gauge-container">
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Inside</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="humGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="humValue">--</div>
+                                    <div class="gauge-unit">%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Outside</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="humOutGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="humOutValue">--</div>
+                                    <div class="gauge-unit">%</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-stats">
@@ -855,7 +883,7 @@
                         </div>
                         <div class="card-icon">🌍</div>
                     </div>
-                    <div class="gauge-container">
+                    <div class="gauge-container" style="margin: 15px auto;">
                         <div class="gauge-bg"></div>
                         <div class="gauge-progress" id="presGauge"></div>
                         <div class="gauge-inner">
@@ -872,16 +900,40 @@
                         <span class="trend stable" id="presTrend">--</span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="glass-panel comfort-card">
-                <div class="comfort-stats">
-                    <div class="stat-badge normal">
-                        <strong>Feels Like:</strong> <span id="feelsLike">--</span>°F
+                
+                <div class="glass-panel card comfort">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="card-number">04</div>
+                            <div class="card-title">Comfort Index</div>
+                        </div>
+                        <div class="card-icon">🌡️</div>
                     </div>
-                    <div class="stat-badge normal">
-                        <strong>Dew Point:</strong> <span id="dewPoint">--</span>°F
+                    <div class="comfort-gauges">
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Feels Like</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="feelsGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="feelsLike">--</div>
+                                    <div class="gauge-unit">°F</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Dew Point</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="dewGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="dewPoint">--</div>
+                                    <div class="gauge-unit">°F</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="comparison-badge" id="comparisonText">Outside weather not configured</div>
                 </div>
             </div>
             
@@ -921,7 +973,7 @@
         let readKey = '9T856LQWFSUDN4I3';
         
         // OpenWeatherMap API Key - Get yours free at: https://openweathermap.org/api
-        const OPENWEATHER_API_KEY = '274eaffc0d94a4808e2c63946702e893';
+        const OPENWEATHER_API_KEY = 'YOUR_API_KEY_HERE';
         
         // ========================================
         
@@ -1090,22 +1142,12 @@
             // Calculate feels like temperature (heat index)
             const feelsLike = calculateFeelsLike(temp, humidity);
             document.getElementById('feelsLike').textContent = feelsLike.toFixed(1);
+            updateGauge('feels', feelsLike, 0, 120);
             
             // Calculate dew point
             const dewPoint = calculateDewPoint(temp, humidity);
             document.getElementById('dewPoint').textContent = dewPoint.toFixed(1);
-            
-            // Update indoor weather display if weather section is visible
-            if (!document.getElementById('weatherSection').classList.contains('hidden')) {
-                document.getElementById('indoorTempDisplay').textContent = `${temp.toFixed(1)}°F`;
-                document.getElementById('indoorHumDisplay').textContent = `${humidity.toFixed(1)}%`;
-                document.getElementById('indoorPresDisplay').textContent = `${pressure.toFixed(2)}"`;
-                
-                // Update comparison if outdoor data exists
-                if (outdoorData) {
-                    updateWeatherComparison(temp, humidity);
-                }
-            }
+            updateGauge('dew', dewPoint, 0, 100);
             
             // Check for alerts
             checkAlerts(temp, humidity, pressure);
@@ -1355,7 +1397,6 @@
             localStorage.setItem('weatherLocation', location);
             
             document.getElementById('weatherConfig').style.display = 'none';
-            document.getElementById('weatherSection').classList.remove('hidden');
             
             await fetchWeatherData();
             setInterval(fetchWeatherData, 600000); // Update every 10 minutes
@@ -1373,11 +1414,15 @@
                 const data = await response.json();
                 outdoorData = data;
                 
-                // Update outdoor display
-                document.getElementById('outdoorTempDisplay').textContent = `${data.main.temp.toFixed(1)}°F`;
-                document.getElementById('outdoorHumDisplay').textContent = `${data.main.humidity}%`;
-                document.getElementById('outdoorFeelsDisplay').textContent = `${data.main.feels_like.toFixed(1)}°F`;
-                document.getElementById('weatherDesc').textContent = data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1);
+                // Update outside gauges
+                const outTemp = data.main.temp;
+                const outHum = data.main.humidity;
+                
+                document.getElementById('tempOutValue').textContent = outTemp.toFixed(1);
+                document.getElementById('humOutValue').textContent = outHum.toFixed(0);
+                
+                updateGauge('tempOut', outTemp, 0, 120);
+                updateGauge('humOut', outHum, 0, 100);
                 
                 // Set weather icon
                 const iconMap = {
@@ -1390,13 +1435,13 @@
                     'Mist': '🌫️',
                     'Fog': '🌫️'
                 };
-                document.getElementById('outdoorIcon').textContent = iconMap[data.weather[0].main] || '🌤️';
+                document.getElementById('weatherIcon').textContent = iconMap[data.weather[0].main] || '🌤️';
                 
-                // Update comparison if indoor data exists
-                const indoorTemp = parseFloat(document.getElementById('tempValue').textContent);
-                const indoorHum = parseFloat(document.getElementById('humValue').textContent);
-                if (!isNaN(indoorTemp)) {
-                    updateWeatherComparison(indoorTemp, indoorHum);
+                // Update comparison if inside data exists
+                const insideTemp = parseFloat(document.getElementById('tempValue').textContent);
+                const insideHum = parseFloat(document.getElementById('humValue').textContent);
+                if (!isNaN(insideTemp)) {
+                    updateWeatherComparison(insideTemp, insideHum);
                 }
             } catch (error) {
                 console.error('Weather fetch error:', error);
@@ -1404,11 +1449,11 @@
             }
         }
         
-        function updateWeatherComparison(indoorTemp, indoorHum) {
+        function updateWeatherComparison(insideTemp, insideHum) {
             if (!outdoorData) return;
             
-            const tempDiff = indoorTemp - outdoorData.main.temp;
-            const humDiff = indoorHum - outdoorData.main.humidity;
+            const tempDiff = insideTemp - outdoorData.main.temp;
+            const humDiff = insideHum - outdoorData.main.humidity;
             
             let tempText = '';
             if (Math.abs(tempDiff) < 1) {
@@ -1428,7 +1473,8 @@
                 humText = `${Math.abs(humDiff).toFixed(0)}% drier`;
             }
             
-            document.getElementById('comparisonText').textContent = `Indoor is ${tempText} and ${humText}`;
+            const desc = outdoorData.weather[0].description.charAt(0).toUpperCase() + outdoorData.weather[0].description.slice(1);
+            document.getElementById('comparisonText').textContent = `Inside is ${tempText} and ${humText} • Outside: ${desc}`;
         }
 
         function updateChart(labels, temps, hums) {
