@@ -1014,9 +1014,14 @@
             // Check if weather is configured
             if (weatherLocation && OPENWEATHER_API_KEY !== 'YOUR_API_KEY_HERE') {
                 document.getElementById('weatherConfig').style.display = 'none';
-                document.getElementById('weatherSection').classList.remove('hidden');
                 fetchWeatherData();
                 setInterval(fetchWeatherData, 600000); // Update every 10 minutes
+            } else {
+                // Clear any bad saved location
+                if (OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
+                    localStorage.removeItem('weatherLocation');
+                    weatherLocation = '';
+                }
             }
         });
         
@@ -1389,17 +1394,40 @@
             }
             
             if (OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
-                alert('Please add your OpenWeatherMap API key first!\n\n1. Go to https://openweathermap.org/api\n2. Sign up (free)\n3. Get your API key\n4. Replace "YOUR_API_KEY_HERE" in the code');
+                alert('Please add your OpenWeatherMap API key first!\n\n1. Go to https://openweathermap.org/api\n2. Sign up (free)\n3. Get your API key\n4. Replace "YOUR_API_KEY_HERE" in the code with your actual key');
                 return;
             }
             
-            weatherLocation = location;
-            localStorage.setItem('weatherLocation', location);
-            
-            document.getElementById('weatherConfig').style.display = 'none';
-            
-            await fetchWeatherData();
-            setInterval(fetchWeatherData, 600000); // Update every 10 minutes
+            // Try to fetch weather data first to validate API key and location
+            try {
+                const testUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+                const response = await fetch(testUrl);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Invalid API key! Please check your OpenWeatherMap API key and try again.');
+                        return;
+                    } else if (response.status === 404) {
+                        alert('Location not found! Please check your city name or zip code and try again.');
+                        return;
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                }
+                
+                // Success! Save location and hide config
+                weatherLocation = location;
+                localStorage.setItem('weatherLocation', location);
+                
+                document.getElementById('weatherConfig').style.display = 'none';
+                
+                await fetchWeatherData();
+                setInterval(fetchWeatherData, 600000); // Update every 10 minutes
+                
+            } catch (error) {
+                console.error('Weather setup error:', error);
+                alert('Error connecting to weather service. Please check your internet connection and API key.');
+            }
         }
         
         async function fetchWeatherData() {
