@@ -379,8 +379,26 @@
         .comfort-gauges {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 15px;
             margin: 15px 0;
+        }
+        
+        .comfort-card .gauge-container {
+            width: 110px;
+            height: 110px;
+            margin: 10px auto;
+        }
+        
+        .comfort-card .gauge-value {
+            font-size: 1.6em;
+        }
+        
+        .comfort-card .gauge-unit {
+            font-size: 0.85em;
+        }
+        
+        .comfort-card .gauge-label {
+            font-size: 0.75em;
         }
         
         .weather-comparison {
@@ -468,12 +486,85 @@
         .weather-config {
             margin-bottom: 20px;
             padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
-        .weather-config input {
-            width: auto;
-            min-width: 200px;
-            margin-right: 10px;
+        .weather-config-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        
+        .weather-config-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .location-display {
+            color: #a8a8ff;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #8888ff;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+            border-color: transparent;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: white;
+        }
+        
+        .toggle-label {
+            color: #8888ff;
+            font-size: 0.9em;
+            font-weight: 600;
         }
         
         .alert-banner {
@@ -740,7 +831,17 @@
             .chart-container { height: 350px; padding: 10px 5px; }
             .chart-section { padding: 20px 15px; }
             .chart-section h2 { font-size: 1.3em; }
-            .comfort-gauges { grid-template-columns: 1fr; }
+            .comfort-gauges { 
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .comfort-card .gauge-container {
+                width: 90px;
+                height: 90px;
+            }
+            .comfort-card .gauge-value {
+                font-size: 1.3em;
+            }
         }
         
         @media (max-width: 480px) {
@@ -752,6 +853,16 @@
             .gauge-value { font-size: 1.6em; }
             .card-meta { font-size: 0.75em; }
             .chart-container { height: 320px; }
+            .comfort-card .gauge-container {
+                width: 80px;
+                height: 80px;
+            }
+            .comfort-card .gauge-value {
+                font-size: 1.1em;
+            }
+            .comfort-card .gauge-label {
+                font-size: 0.7em;
+            }
         }
     </style>
 </head>
@@ -782,11 +893,21 @@
         <div id="alertsDiv"></div>
         
         <div id="dashboardContent" class="hidden">
-            <div class="glass-panel weather-config" id="weatherConfig">
-                <h3 style="color: #a8a8ff; margin-bottom: 15px;">🌤️ Add Outside Weather</h3>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <input type="text" id="locationInput" placeholder="Enter city or zip code" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; color: #e0e0ff;">
-                    <button class="btn" style="padding: 12px 30px; font-size: 1em;" onclick="setupWeather()">Add Weather</button>
+            <div class="glass-panel weather-config">
+                <div class="weather-config-left">
+                    <span style="color: #a8a8ff;">🌤️ Outside Weather:</span>
+                    <span class="location-display" id="locationDisplay">Not configured</span>
+                    <div id="locationInputGroup" style="display: none; gap: 10px; align-items: center;">
+                        <input type="text" id="locationInput" placeholder="Enter city or zip code" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; color: #e0e0ff; min-width: 200px;">
+                        <button class="btn" style="padding: 12px 30px; font-size: 1em;" onclick="saveWeatherLocation()">Save Location</button>
+                    </div>
+                </div>
+                <div class="weather-config-right">
+                    <span class="toggle-label">Edit Location</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="locationToggle" onchange="toggleLocationEdit()">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
             </div>
             
@@ -911,7 +1032,7 @@
                     </div>
                     <div class="comfort-gauges">
                         <div class="gauge-wrapper">
-                            <div class="gauge-label">Feels Like</div>
+                            <div class="gauge-label">Inside Feels Like</div>
                             <div class="gauge-container">
                                 <div class="gauge-bg"></div>
                                 <div class="gauge-progress" id="feelsGauge"></div>
@@ -922,12 +1043,34 @@
                             </div>
                         </div>
                         <div class="gauge-wrapper">
-                            <div class="gauge-label">Dew Point</div>
+                            <div class="gauge-label">Inside Dew Point</div>
                             <div class="gauge-container">
                                 <div class="gauge-bg"></div>
                                 <div class="gauge-progress" id="dewGauge"></div>
                                 <div class="gauge-inner">
                                     <div class="gauge-value" id="dewPoint">--</div>
+                                    <div class="gauge-unit">°F</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Outside Feels Like</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="feelsOutGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="feelsOutValue">--</div>
+                                    <div class="gauge-unit">°F</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <div class="gauge-label">Outside Dew Point</div>
+                            <div class="gauge-container">
+                                <div class="gauge-bg"></div>
+                                <div class="gauge-progress" id="dewOutGauge"></div>
+                                <div class="gauge-inner">
+                                    <div class="gauge-value" id="dewOutValue">--</div>
                                     <div class="gauge-unit">°F</div>
                                 </div>
                             </div>
@@ -974,7 +1117,7 @@
         
         // OpenWeatherMap API Key - Get yours free at: https://openweathermap.org/api
         const OPENWEATHER_API_KEY = '274eaffc0d94a4808e2c63946702e893';
-
+        
         // ========================================
         
         // ========================================
@@ -1013,7 +1156,7 @@
             
             // Check if weather is configured
             if (weatherLocation && OPENWEATHER_API_KEY !== 'YOUR_API_KEY_HERE') {
-                document.getElementById('weatherConfig').style.display = 'none';
+                document.getElementById('locationDisplay').textContent = weatherLocation;
                 fetchWeatherData();
                 setInterval(fetchWeatherData, 600000); // Update every 10 minutes
             } else {
@@ -1022,8 +1165,79 @@
                     localStorage.removeItem('weatherLocation');
                     weatherLocation = '';
                 }
+                // Show input if no location configured
+                toggleLocationEdit(true);
             }
         });
+        
+        function toggleLocationEdit(forceShow = false) {
+            const toggle = document.getElementById('locationToggle');
+            const inputGroup = document.getElementById('locationInputGroup');
+            const display = document.getElementById('locationDisplay');
+            
+            if (forceShow || toggle.checked) {
+                inputGroup.style.display = 'flex';
+                display.style.display = 'none';
+                document.getElementById('locationInput').value = weatherLocation || '';
+                document.getElementById('locationInput').focus();
+            } else {
+                inputGroup.style.display = 'none';
+                display.style.display = 'inline';
+            }
+        }
+        
+        async function saveWeatherLocation() {
+            const location = document.getElementById('locationInput').value.trim();
+            
+            if (!location) {
+                alert('Please enter a city or zip code');
+                return;
+            }
+            
+            if (OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
+                alert('Please add your OpenWeatherMap API key first!\n\n1. Go to https://openweathermap.org/api\n2. Sign up (free)\n3. Get your API key\n4. Replace "YOUR_API_KEY_HERE" in the code with your actual key');
+                return;
+            }
+            
+            // Try to fetch weather data first to validate API key and location
+            try {
+                const testUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
+                const response = await fetch(testUrl);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Invalid API key! Please check your OpenWeatherMap API key and try again.');
+                        return;
+                    } else if (response.status === 404) {
+                        alert('Location not found! Please check your city name or zip code and try again.');
+                        return;
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                }
+                
+                // Success! Save location
+                weatherLocation = location;
+                localStorage.setItem('weatherLocation', location);
+                document.getElementById('locationDisplay').textContent = location;
+                
+                // Turn off edit mode
+                document.getElementById('locationToggle').checked = false;
+                toggleLocationEdit();
+                
+                // Fetch weather data
+                await fetchWeatherData();
+                
+                // Set up interval if not already set
+                if (!window.weatherInterval) {
+                    window.weatherInterval = setInterval(fetchWeatherData, 600000);
+                }
+                
+            } catch (error) {
+                console.error('Weather setup error:', error);
+                alert('Error connecting to weather service. Please check your internet connection and API key.');
+            }
+        }
         
         function startRefreshCountdown() {
             const circumference = 2 * Math.PI * 16;
@@ -1385,51 +1599,6 @@
             window.URL.revokeObjectURL(url);
         }
         
-        async function setupWeather() {
-            const location = document.getElementById('locationInput').value.trim();
-            
-            if (!location) {
-                alert('Please enter a city or zip code');
-                return;
-            }
-            
-            if (OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
-                alert('Please add your OpenWeatherMap API key first!\n\n1. Go to https://openweathermap.org/api\n2. Sign up (free)\n3. Get your API key\n4. Replace "YOUR_API_KEY_HERE" in the code with your actual key');
-                return;
-            }
-            
-            // Try to fetch weather data first to validate API key and location
-            try {
-                const testUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
-                const response = await fetch(testUrl);
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        alert('Invalid API key! Please check your OpenWeatherMap API key and try again.');
-                        return;
-                    } else if (response.status === 404) {
-                        alert('Location not found! Please check your city name or zip code and try again.');
-                        return;
-                    } else {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                }
-                
-                // Success! Save location and hide config
-                weatherLocation = location;
-                localStorage.setItem('weatherLocation', location);
-                
-                document.getElementById('weatherConfig').style.display = 'none';
-                
-                await fetchWeatherData();
-                setInterval(fetchWeatherData, 600000); // Update every 10 minutes
-                
-            } catch (error) {
-                console.error('Weather setup error:', error);
-                alert('Error connecting to weather service. Please check your internet connection and API key.');
-            }
-        }
-        
         async function fetchWeatherData() {
             try {
                 const url = `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
@@ -1451,6 +1620,16 @@
                 
                 updateGauge('tempOut', outTemp, 0, 120);
                 updateGauge('humOut', outHum, 0, 100);
+                
+                // Calculate outside feels like and dew point
+                const outFeelsLike = data.main.feels_like;
+                const outDewPoint = calculateDewPoint(outTemp, outHum);
+                
+                document.getElementById('feelsOutValue').textContent = outFeelsLike.toFixed(1);
+                document.getElementById('dewOutValue').textContent = outDewPoint.toFixed(1);
+                
+                updateGauge('feelsOut', outFeelsLike, 0, 120);
+                updateGauge('dewOut', outDewPoint, 0, 100);
                 
                 // Set weather icon
                 const iconMap = {
