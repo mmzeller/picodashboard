@@ -1157,7 +1157,10 @@
             // Check if weather is configured
             if (weatherLocation && OPENWEATHER_API_KEY !== 'YOUR_API_KEY_HERE') {
                 document.getElementById('locationDisplay').textContent = weatherLocation;
-                fetchWeatherData();
+                // Immediately fetch weather to update comparison text
+                fetchWeatherData().then(() => {
+                    console.log('Weather data loaded on startup');
+                });
                 setInterval(fetchWeatherData, 600000); // Update every 10 minutes
             } else {
                 // Clear any bad saved location
@@ -1600,6 +1603,11 @@
         }
         
         async function fetchWeatherData() {
+            if (!weatherLocation || OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
+                console.log('Weather not configured');
+                return;
+            }
+            
             try {
                 const url = `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
                 const response = await fetch(url);
