@@ -896,9 +896,9 @@
             <div class="glass-panel weather-config">
                 <div class="weather-config-left">
                     <span style="color: #a8a8ff;">🌤️ Outside Weather:</span>
-                    <span class="location-display" id="locationDisplay">Not configured</span>
+                    <span class="location-display" id="locationDisplay">Columbus, IN</span>
                     <div id="locationInputGroup" style="display: none; gap: 10px; align-items: center;">
-                        <input type="text" id="locationInput" placeholder="Enter city or zip code" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; color: #e0e0ff; min-width: 200px;">
+                        <input type="text" id="locationInput" placeholder="Enter ZIP code (e.g., 47203)" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; color: #e0e0ff; min-width: 250px;">
                         <button class="btn" style="padding: 12px 30px; font-size: 1em;" onclick="saveWeatherLocation()">Save Location</button>
                     </div>
                 </div>
@@ -1159,24 +1159,24 @@
             // Start refresh countdown
             startRefreshCountdown();
             
-            // Check if weather is configured
-            if (weatherLocation) {
-                document.getElementById('locationDisplay').textContent = weatherLocation;
-                // Immediately fetch weather to update comparison text
-                fetchWeatherData().then(() => {
-                    console.log('Weather data loaded on startup');
-                });
-                setInterval(fetchWeatherData, 600000); // Update every 10 minutes
-            } else {
-                // Use default location (Columbus, IN)
+            // Initialize weather with default Columbus, IN if not set
+            if (!weatherLocation) {
                 weatherLocation = 'Columbus, IN';
+                weatherLat = DEFAULT_LAT;
+                weatherLon = DEFAULT_LON;
                 localStorage.setItem('weatherLocation', weatherLocation);
-                localStorage.setItem('weatherLat', DEFAULT_LAT);
-                localStorage.setItem('weatherLon', DEFAULT_LON);
-                document.getElementById('locationDisplay').textContent = weatherLocation;
-                fetchWeatherData();
-                setInterval(fetchWeatherData, 600000);
+                localStorage.setItem('weatherLat', weatherLat);
+                localStorage.setItem('weatherLon', weatherLon);
             }
+            
+            // Display current location
+            document.getElementById('locationDisplay').textContent = weatherLocation;
+            
+            // Fetch weather data immediately
+            fetchWeatherData();
+            
+            // Set up regular updates
+            window.weatherInterval = setInterval(fetchWeatherData, 600000); // Every 10 minutes
         });
         
         function toggleLocationEdit(forceShow = false) {
@@ -1184,10 +1184,12 @@
             const inputGroup = document.getElementById('locationInputGroup');
             const display = document.getElementById('locationDisplay');
             
-            if (forceShow || toggle.checked) {
+            const isEditing = forceShow || toggle.checked;
+            
+            if (isEditing) {
                 inputGroup.style.display = 'flex';
                 display.style.display = 'none';
-                document.getElementById('locationInput').value = weatherLocation || '';
+                document.getElementById('locationInput').value = '';
                 document.getElementById('locationInput').focus();
             } else {
                 inputGroup.style.display = 'none';
@@ -1196,95 +1198,75 @@
         }
         
         async function saveWeatherLocation() {
-            const location = document.getElementById('locationInput').value.trim();
+            const input = document.getElementById('locationInput').value.trim();
             
-            if (!location) {
-                alert('Please enter a city and state or ZIP code');
+            if (!input) {
+                alert('Please enter a ZIP code');
+                return;
+            }
+            
+            // Check if it's a 5-digit ZIP code
+            if (!/^\d{5}$/.test(input)) {
+                alert('Please enter a valid 5-digit ZIP code (e.g., 47203)');
                 return;
             }
             
             try {
-                // Try to get lat/lon from ZIP code or city name
-                let lat, lon;
+                // Step 1: Convert ZIP to lat/lon using Zippopotam
+                console.log('Looking up ZIP:', input);
+                const zipUrl = `https://api.zippopotam.us/us/${input}`;
+                const zipResponse = await fetch(zipUrl);
                 
-                // Check if it's a ZIP code (5 digits)
-                if (/^\d{5}$/.test(location)) {
-                    // Use Zippopotam API for ZIP
-                    const zipUrl = `https://api.zippopotam.us/us/${location}`;
-                    const zipResponse = await fetch(zipUrl);
-                    
-                    if (!response.ok) {
-                        alert('ZIP code not found. Please try again.');
-                        return;
-                    }
-                    
-                    const zipData = await zipResponse.json();
-                    lat = parseFloat(zipData.places[0].latitude);
-                    lon = parseFloat(zipData.places[0].longitude);
-                    
-                } else {
-                    // For city names, use NWS geocoding or prompt for manual entry
-                    alert('For city names, please use format: "City, State" (e.g., "Columbus, IN")\nOr enter a 5-digit ZIP code for automatic lookup.');
-                    
-                    // You could add geocoding here, but for simplicity, 
-                    // let's prompt user to enter coordinates
-                    const coords = prompt('Enter coordinates as: latitude, longitude\n(e.g., 39.2314, -85.8639)\nOr use a ZIP code instead.');
-                    
-                    if (!coords) return;
-                    
-                    const parts = coords.split(',').map(s => s.trim());
-                    if (parts.length !== 2) {
-                        alert('Invalid format. Please use: latitude, longitude');
-                        return;
-                    }
-                    
-                    lat = parseFloat(parts[0]);
-                    lon = parseFloat(parts[1]);
-                    
-                    if (isNaN(lat) || isNaN(lon)) {
-                        alert('Invalid coordinates');
-                        return;
-                    }
+                if (!zipResponse.ok) {
+                    alert('ZIP code not found. Please check and try again.');
+                    return;
                 }
                 
-                // Test NWS API with these coordinates
+                const zipData = await zipResponse.json();
+                const lat = parseFloat(zipData.places[0].latitude);
+                const lon = parseFloat(zipData.places[0].longitude);
+                const cityName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
+                
+                console.log('Found location:', cityName, lat, lon);
+                
+                // Step 2: Verify with NWS
                 const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
                 const pointsResponse = await fetch(pointsUrl);
                 
                 if (!pointsResponse.ok) {
-                    alert('Location not supported by NWS. Please try a US location.');
+                    alert('This location is not supported by the National Weather Service. Please try a different US ZIP code.');
                     return;
                 }
                 
                 const pointsData = await pointsResponse.json();
                 nwsForecastUrl = pointsData.properties.forecast;
                 
-                // Success! Save location
-                weatherLocation = location;
+                console.log('NWS forecast URL:', nwsForecastUrl);
+                
+                // Step 3: Save everything
+                weatherLocation = cityName;
                 weatherLat = lat;
                 weatherLon = lon;
                 
-                localStorage.setItem('weatherLocation', location);
+                localStorage.setItem('weatherLocation', cityName);
                 localStorage.setItem('weatherLat', lat);
                 localStorage.setItem('weatherLon', lon);
                 
-                document.getElementById('locationDisplay').textContent = location;
+                document.getElementById('locationDisplay').textContent = cityName;
                 
                 // Turn off edit mode
                 document.getElementById('locationToggle').checked = false;
                 toggleLocationEdit();
                 
-                // Fetch weather data
+                // Fetch weather immediately
+                console.log('Fetching weather for new location...');
                 await fetchWeatherData();
                 
-                // Set up interval if not already set
-                if (!window.weatherInterval) {
-                    window.weatherInterval = setInterval(fetchWeatherData, 600000);
-                }
+                alert(`Location updated to: ${cityName}`);
                 
             } catch (error) {
                 console.error('Location setup error:', error);
-                alert('Error setting up location. Please check your input and try again.');
+                alert('Error setting up location. Please try again or use a different ZIP code.');
             }
         }
         
@@ -1650,13 +1632,15 @@
         
         async function fetchWeatherData() {
             if (!weatherLat || !weatherLon) {
-                console.log('Weather coordinates not configured');
-                return;
+                console.log('Weather coordinates not set, using defaults');
+                weatherLat = DEFAULT_LAT;
+                weatherLon = DEFAULT_LON;
             }
             
             try {
-                // Step 1: Get NWS points data (contains forecast URLs)
+                // Step 1: Get NWS points data if we don't have forecast URL
                 if (!nwsForecastUrl) {
+                    console.log('Getting NWS forecast URL for:', weatherLat, weatherLon);
                     const pointsUrl = `https://api.weather.gov/points/${weatherLat},${weatherLon}`;
                     const pointsResponse = await fetch(pointsUrl);
                     
@@ -1666,9 +1650,11 @@
                     
                     const pointsData = await pointsResponse.json();
                     nwsForecastUrl = pointsData.properties.forecast;
+                    console.log('Got forecast URL:', nwsForecastUrl);
                 }
                 
                 // Step 2: Get current forecast
+                console.log('Fetching forecast from:', nwsForecastUrl);
                 const forecastResponse = await fetch(nwsForecastUrl);
                 
                 if (!forecastResponse.ok) {
@@ -1676,18 +1662,22 @@
                 }
                 
                 const forecastData = await forecastResponse.json();
-                const currentPeriod = forecastData.properties.periods[0]; // Current conditions
+                const currentPeriod = forecastData.properties.periods[0];
+                
+                console.log('Current conditions:', currentPeriod);
                 
                 // Parse NWS data
                 const outTemp = currentPeriod.temperature;
-                const outHum = currentPeriod.relativeHumidity?.value || 50; // NWS sometimes doesn't provide humidity
+                const outHum = currentPeriod.relativeHumidity?.value || 50;
                 
-                // Create outdoorData object similar to OpenWeather format
+                console.log('Outside temp:', outTemp, 'Outside humidity:', outHum);
+                
+                // Create outdoorData object
                 outdoorData = {
                     main: {
                         temp: outTemp,
                         humidity: outHum,
-                        feels_like: outTemp // NWS doesn't provide feels_like, so we'll calculate it
+                        feels_like: outTemp
                     },
                     weather: [{
                         main: getWeatherMain(currentPeriod.shortForecast),
@@ -1695,7 +1685,7 @@
                     }]
                 };
                 
-                // Calculate feels like from temp and humidity
+                // Calculate feels like if hot
                 if (outTemp >= 80) {
                     outdoorData.main.feels_like = calculateFeelsLike(outTemp, outHum);
                 }
@@ -1707,7 +1697,7 @@
                 updateGauge('tempOut', outTemp, 0, 120);
                 updateGauge('humOut', outHum, 0, 100);
                 
-                // Calculate outside feels like and dew point
+                // Calculate outside comfort metrics
                 const outFeelsLike = outdoorData.main.feels_like;
                 const outDewPoint = calculateDewPoint(outTemp, outHum);
                 
@@ -1727,12 +1717,13 @@
                     'Rain': '🌧️',
                     'Showers': '🌦️',
                     'Thunderstorm': '⛈️',
+                    'Thunder': '⛈️',
                     'Snow': '❄️',
                     'Fog': '🌫️',
                     'Mist': '🌫️'
                 };
                 
-                let weatherIcon = '🌤️'; // Default
+                let weatherIcon = '🌤️';
                 for (const [key, icon] of Object.entries(iconMap)) {
                     if (currentPeriod.shortForecast.includes(key)) {
                         weatherIcon = icon;
@@ -1741,20 +1732,27 @@
                 }
                 document.getElementById('weatherIcon').textContent = weatherIcon;
                 
+                console.log('Weather icon set to:', weatherIcon);
+                
                 // Update comparison if inside data exists
                 const insideTemp = parseFloat(document.getElementById('tempValue').textContent);
                 const insideHum = parseFloat(document.getElementById('humValue').textContent);
-                if (!isNaN(insideTemp)) {
+                
+                if (!isNaN(insideTemp) && !isNaN(insideHum)) {
                     updateWeatherComparison(insideTemp, insideHum);
+                } else {
+                    document.getElementById('comparisonText').textContent = `Outside: ${currentPeriod.shortForecast}`;
                 }
+                
+                console.log('Weather data updated successfully');
+                
             } catch (error) {
                 console.error('NWS weather fetch error:', error);
-                document.getElementById('comparisonText').textContent = 'Unable to fetch NWS weather data';
+                document.getElementById('comparisonText').textContent = 'Unable to fetch weather data';
             }
         }
         
         function getWeatherMain(forecast) {
-            // Convert NWS forecast text to simple category
             const lower = forecast.toLowerCase();
             if (lower.includes('rain') || lower.includes('shower')) return 'Rain';
             if (lower.includes('thunder')) return 'Thunderstorm';
