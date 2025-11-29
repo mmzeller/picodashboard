@@ -1115,8 +1115,10 @@
         let channelId = '3167437';
         let readKey = '9T856LQWFSUDN4I3';
         
-        // OpenWeatherMap API Key - Get yours free at: https://openweathermap.org/api
-        const OPENWEATHER_API_KEY = '274eaffc0d94a4808e2c63946702e893';
+        // NWS Weather - No API key needed!
+        // We'll use lat/lon for Columbus, Indiana by default
+        const DEFAULT_LAT = 39.2314;
+        const DEFAULT_LON = -85.8639;
         
         // ========================================
         
@@ -1141,7 +1143,10 @@
         
         // Weather data
         let weatherLocation = localStorage.getItem('weatherLocation') || '';
+        let weatherLat = parseFloat(localStorage.getItem('weatherLat')) || DEFAULT_LAT;
+        let weatherLon = parseFloat(localStorage.getItem('weatherLon')) || DEFAULT_LON;
         let outdoorData = null;
+        let nwsForecastUrl = null;
 
         // Auto-start dashboard on load
         window.addEventListener('DOMContentLoaded', function() {
@@ -1155,7 +1160,7 @@
             startRefreshCountdown();
             
             // Check if weather is configured
-            if (weatherLocation && OPENWEATHER_API_KEY !== 'YOUR_API_KEY_HERE') {
+            if (weatherLocation) {
                 document.getElementById('locationDisplay').textContent = weatherLocation;
                 // Immediately fetch weather to update comparison text
                 fetchWeatherData().then(() => {
@@ -1163,13 +1168,14 @@
                 });
                 setInterval(fetchWeatherData, 600000); // Update every 10 minutes
             } else {
-                // Clear any bad saved location
-                if (OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
-                    localStorage.removeItem('weatherLocation');
-                    weatherLocation = '';
-                }
-                // Show input if no location configured
-                toggleLocationEdit(true);
+                // Use default location (Columbus, IN)
+                weatherLocation = 'Columbus, IN';
+                localStorage.setItem('weatherLocation', weatherLocation);
+                localStorage.setItem('weatherLat', DEFAULT_LAT);
+                localStorage.setItem('weatherLon', DEFAULT_LON);
+                document.getElementById('locationDisplay').textContent = weatherLocation;
+                fetchWeatherData();
+                setInterval(fetchWeatherData, 600000);
             }
         });
         
@@ -1193,35 +1199,75 @@
             const location = document.getElementById('locationInput').value.trim();
             
             if (!location) {
-                alert('Please enter a city or zip code');
+                alert('Please enter a city and state or ZIP code');
                 return;
             }
             
-            if (OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
-                alert('Please add your OpenWeatherMap API key first!\n\n1. Go to https://openweathermap.org/api\n2. Sign up (free)\n3. Get your API key\n4. Replace "YOUR_API_KEY_HERE" in the code with your actual key');
-                return;
-            }
-            
-            // Try to fetch weather data first to validate API key and location
             try {
-                const testUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
-                const response = await fetch(testUrl);
+                // Try to get lat/lon from ZIP code or city name
+                let lat, lon;
                 
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        alert('Invalid API key! Please check your OpenWeatherMap API key and try again.');
+                // Check if it's a ZIP code (5 digits)
+                if (/^\d{5}$/.test(location)) {
+                    // Use Zippopotam API for ZIP
+                    const zipUrl = `https://api.zippopotam.us/us/${location}`;
+                    const zipResponse = await fetch(zipUrl);
+                    
+                    if (!response.ok) {
+                        alert('ZIP code not found. Please try again.');
                         return;
-                    } else if (response.status === 404) {
-                        alert('Location not found! Please check your city name or zip code and try again.');
+                    }
+                    
+                    const zipData = await zipResponse.json();
+                    lat = parseFloat(zipData.places[0].latitude);
+                    lon = parseFloat(zipData.places[0].longitude);
+                    
+                } else {
+                    // For city names, use NWS geocoding or prompt for manual entry
+                    alert('For city names, please use format: "City, State" (e.g., "Columbus, IN")\nOr enter a 5-digit ZIP code for automatic lookup.');
+                    
+                    // You could add geocoding here, but for simplicity, 
+                    // let's prompt user to enter coordinates
+                    const coords = prompt('Enter coordinates as: latitude, longitude\n(e.g., 39.2314, -85.8639)\nOr use a ZIP code instead.');
+                    
+                    if (!coords) return;
+                    
+                    const parts = coords.split(',').map(s => s.trim());
+                    if (parts.length !== 2) {
+                        alert('Invalid format. Please use: latitude, longitude');
                         return;
-                    } else {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    lat = parseFloat(parts[0]);
+                    lon = parseFloat(parts[1]);
+                    
+                    if (isNaN(lat) || isNaN(lon)) {
+                        alert('Invalid coordinates');
+                        return;
                     }
                 }
                 
+                // Test NWS API with these coordinates
+                const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
+                const pointsResponse = await fetch(pointsUrl);
+                
+                if (!pointsResponse.ok) {
+                    alert('Location not supported by NWS. Please try a US location.');
+                    return;
+                }
+                
+                const pointsData = await pointsResponse.json();
+                nwsForecastUrl = pointsData.properties.forecast;
+                
                 // Success! Save location
                 weatherLocation = location;
+                weatherLat = lat;
+                weatherLon = lon;
+                
                 localStorage.setItem('weatherLocation', location);
+                localStorage.setItem('weatherLat', lat);
+                localStorage.setItem('weatherLon', lon);
+                
                 document.getElementById('locationDisplay').textContent = location;
                 
                 // Turn off edit mode
@@ -1237,8 +1283,8 @@
                 }
                 
             } catch (error) {
-                console.error('Weather setup error:', error);
-                alert('Error connecting to weather service. Please check your internet connection and API key.');
+                console.error('Location setup error:', error);
+                alert('Error setting up location. Please check your input and try again.');
             }
         }
         
@@ -1603,26 +1649,58 @@
         }
         
         async function fetchWeatherData() {
-            if (!weatherLocation || OPENWEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
-                console.log('Weather not configured');
+            if (!weatherLat || !weatherLon) {
+                console.log('Weather coordinates not configured');
                 return;
             }
             
             try {
-                const url = `https://api.openweathermap.org/data/2.5/weather?q=${weatherLocation}&appid=${OPENWEATHER_API_KEY}&units=imperial`;
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch weather data');
+                // Step 1: Get NWS points data (contains forecast URLs)
+                if (!nwsForecastUrl) {
+                    const pointsUrl = `https://api.weather.gov/points/${weatherLat},${weatherLon}`;
+                    const pointsResponse = await fetch(pointsUrl);
+                    
+                    if (!pointsResponse.ok) {
+                        throw new Error('Failed to get NWS points data');
+                    }
+                    
+                    const pointsData = await pointsResponse.json();
+                    nwsForecastUrl = pointsData.properties.forecast;
                 }
                 
-                const data = await response.json();
-                outdoorData = data;
+                // Step 2: Get current forecast
+                const forecastResponse = await fetch(nwsForecastUrl);
+                
+                if (!forecastResponse.ok) {
+                    throw new Error('Failed to fetch NWS forecast');
+                }
+                
+                const forecastData = await forecastResponse.json();
+                const currentPeriod = forecastData.properties.periods[0]; // Current conditions
+                
+                // Parse NWS data
+                const outTemp = currentPeriod.temperature;
+                const outHum = currentPeriod.relativeHumidity?.value || 50; // NWS sometimes doesn't provide humidity
+                
+                // Create outdoorData object similar to OpenWeather format
+                outdoorData = {
+                    main: {
+                        temp: outTemp,
+                        humidity: outHum,
+                        feels_like: outTemp // NWS doesn't provide feels_like, so we'll calculate it
+                    },
+                    weather: [{
+                        main: getWeatherMain(currentPeriod.shortForecast),
+                        description: currentPeriod.shortForecast
+                    }]
+                };
+                
+                // Calculate feels like from temp and humidity
+                if (outTemp >= 80) {
+                    outdoorData.main.feels_like = calculateFeelsLike(outTemp, outHum);
+                }
                 
                 // Update outside gauges
-                const outTemp = data.main.temp;
-                const outHum = data.main.humidity;
-                
                 document.getElementById('tempOutValue').textContent = outTemp.toFixed(1);
                 document.getElementById('humOutValue').textContent = outHum.toFixed(0);
                 
@@ -1630,7 +1708,7 @@
                 updateGauge('humOut', outHum, 0, 100);
                 
                 // Calculate outside feels like and dew point
-                const outFeelsLike = data.main.feels_like;
+                const outFeelsLike = outdoorData.main.feels_like;
                 const outDewPoint = calculateDewPoint(outTemp, outHum);
                 
                 document.getElementById('feelsOutValue').textContent = outFeelsLike.toFixed(1);
@@ -1642,15 +1720,26 @@
                 // Set weather icon
                 const iconMap = {
                     'Clear': '☀️',
+                    'Sunny': '☀️',
                     'Clouds': '☁️',
+                    'Cloudy': '☁️',
+                    'Partly': '⛅',
                     'Rain': '🌧️',
-                    'Drizzle': '🌦️',
+                    'Showers': '🌦️',
                     'Thunderstorm': '⛈️',
                     'Snow': '❄️',
-                    'Mist': '🌫️',
-                    'Fog': '🌫️'
+                    'Fog': '🌫️',
+                    'Mist': '🌫️'
                 };
-                document.getElementById('weatherIcon').textContent = iconMap[data.weather[0].main] || '🌤️';
+                
+                let weatherIcon = '🌤️'; // Default
+                for (const [key, icon] of Object.entries(iconMap)) {
+                    if (currentPeriod.shortForecast.includes(key)) {
+                        weatherIcon = icon;
+                        break;
+                    }
+                }
+                document.getElementById('weatherIcon').textContent = weatherIcon;
                 
                 // Update comparison if inside data exists
                 const insideTemp = parseFloat(document.getElementById('tempValue').textContent);
@@ -1659,9 +1748,21 @@
                     updateWeatherComparison(insideTemp, insideHum);
                 }
             } catch (error) {
-                console.error('Weather fetch error:', error);
-                document.getElementById('comparisonText').textContent = 'Unable to fetch weather data';
+                console.error('NWS weather fetch error:', error);
+                document.getElementById('comparisonText').textContent = 'Unable to fetch NWS weather data';
             }
+        }
+        
+        function getWeatherMain(forecast) {
+            // Convert NWS forecast text to simple category
+            const lower = forecast.toLowerCase();
+            if (lower.includes('rain') || lower.includes('shower')) return 'Rain';
+            if (lower.includes('thunder')) return 'Thunderstorm';
+            if (lower.includes('snow')) return 'Snow';
+            if (lower.includes('cloud')) return 'Clouds';
+            if (lower.includes('clear') || lower.includes('sunny')) return 'Clear';
+            if (lower.includes('fog') || lower.includes('mist')) return 'Fog';
+            return 'Clear';
         }
         
         function updateWeatherComparison(insideTemp, insideHum) {
