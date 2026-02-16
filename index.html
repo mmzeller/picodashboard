@@ -1203,12 +1203,20 @@
                     </div>
                 </div>
 
-                <!-- Live Logs -->
+                <!-- System Status -->
                 <div class="diagnostic-section">
-                    <div class="section-title">📝 Live System Logs</div>
-                    <div class="log-panel" id="diagLogPanel">
-                        <div class="log-entry info">Waiting for log data...</div>
+                    <div class="section-title">⏱️ System Status</div>
+                    <div class="diagnostic-grid">
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">Uptime Since Boot</div>
+                            <div class="diagnostic-value" id="diagUptime">--</div>
+                            <div class="diagnostic-status">Minutes</div>
+                        </div>
                     </div>
+                    <p style="color: #8888ff; font-size: 0.9em; margin-top: 15px; line-height: 1.6;">
+                        💡 <strong>Tip:</strong> Full system logs are only available via USB serial console when Pico is connected to computer.
+                        The diagnostics above show real-time health metrics transmitted from your Pico every 30 seconds.
+                    </p>
                 </div>
             </div>
         </div>
@@ -1618,36 +1626,16 @@
                 }
             }
 
-            // Update logs
-            updateDiagnosticLogs();
-        }
-
-        function updateDiagnosticLogs() {
-            const logPanel = document.getElementById('diagLogPanel');
-            logPanel.innerHTML = '';
-            
-            if (diagnosticData.logs.length === 0) {
-                logPanel.innerHTML = '<div class="log-entry info">No log data available yet...</div>';
-                return;
+            // Update uptime
+            if (diagnosticData.uptime !== null && diagnosticData.uptime !== undefined) {
+                document.getElementById('diagUptime').textContent = diagnosticData.uptime;
             }
-
-            diagnosticData.logs.forEach(log => {
-                const entry = document.createElement('div');
-                let level = 'info';
-                if (log.includes('[SUCCESS]')) level = 'success';
-                else if (log.includes('[WARN]')) level = 'warn';
-                else if (log.includes('[ERROR]')) level = 'error';
-                
-                entry.className = `log-entry ${level}`;
-                entry.textContent = log;
-                logPanel.appendChild(entry);
-            });
         }
 
         function parseDiagnostics(status) {
             if (!status) return;
             
-            // Format: "V:4.69V-OK-M:78KB-W:1-S:0-F:2" or "V:NA-NOREAD-M:78KB-W:1-S:0-F:2"
+            // Format: "V:4.69V-OK-M:78KB-W:1-S:0-F:2-U:15m" or "V:NA-NOREAD-M:78KB-W:1-S:0-F:2-U:15m"
             const parts = status.split('-');
             
             parts.forEach(part => {
@@ -1686,6 +1674,12 @@
                     const match = part.match(/F:(\d+)/);
                     if (match) {
                         diagnosticData.failCount = parseInt(match[1]);
+                    }
+                } else if (part.startsWith('U:')) {
+                    // Uptime: U:15m
+                    const match = part.match(/U:(\d+)m/);
+                    if (match) {
+                        diagnosticData.uptime = parseInt(match[1]);
                     }
                 }
             });
