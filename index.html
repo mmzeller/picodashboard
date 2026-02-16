@@ -1526,7 +1526,8 @@
 
         function updateDiagnosticDisplay() {
             // Update voltage
-            if (diagnosticData.voltage !== null) {
+            if (diagnosticData.voltage !== null && diagnosticData.voltageStatus && 
+                !['NOREAD', 'UNAVAIL', 'ERROR'].includes(diagnosticData.voltageStatus)) {
                 document.getElementById('diagVoltageValue').textContent = diagnosticData.voltage.toFixed(2) + 'V';
                 const statusEl = document.getElementById('diagVoltageStatus');
                 statusEl.textContent = diagnosticData.voltageStatus;
@@ -1541,6 +1542,21 @@
                 
                 const percentage = Math.min(100, Math.max(0, ((diagnosticData.voltage - 3.0) / 2.5) * 100));
                 document.getElementById('diagVoltageFill').style.width = percentage + '%';
+            } else {
+                // Voltage reading unavailable
+                document.getElementById('diagVoltageValue').textContent = 'N/A';
+                const statusEl = document.getElementById('diagVoltageStatus');
+                if (diagnosticData.voltageStatus === 'NOREAD') {
+                    statusEl.textContent = 'Not Available (Pico 2 W ADC)';
+                } else if (diagnosticData.voltageStatus === 'UNAVAIL') {
+                    statusEl.textContent = 'Hardware Not Supported';
+                } else {
+                    statusEl.textContent = 'Unavailable';
+                }
+                statusEl.className = 'diagnostic-status';
+                statusEl.style.background = 'rgba(128, 128, 128, 0.2)';
+                statusEl.style.color = '#aaa';
+                document.getElementById('diagVoltageFill').style.width = '0%';
             }
 
             // Update memory
@@ -1631,17 +1647,20 @@
         function parseDiagnostics(status) {
             if (!status) return;
             
-            // Simple format: "V:4.69V-OK-M:78KB-W:1-S:0-F:2"
+            // Format: "V:4.69V-OK-M:78KB-W:1-S:0-F:2" or "V:NA-NOREAD-M:78KB-W:1-S:0-F:2"
             const parts = status.split('-');
             
             parts.forEach(part => {
                 if (part.startsWith('V:')) {
-                    // Voltage: V:4.69V or just OK (second part)
+                    // Voltage: V:4.69V or V:NA
                     const match = part.match(/V:([\d.]+)V/);
                     if (match) {
                         diagnosticData.voltage = parseFloat(match[1]);
+                    } else if (part === 'V:NA') {
+                        diagnosticData.voltage = null;
                     }
-                } else if (part === 'OK' || part === 'LOW' || part === 'CRITICAL' || part === 'HIGH') {
+                } else if (part === 'OK' || part === 'LOW' || part === 'CRITICAL' || part === 'HIGH' || 
+                           part === 'NOREAD' || part === 'UNAVAIL' || part === 'ERROR') {
                     // Voltage status
                     diagnosticData.voltageStatus = part;
                 } else if (part.startsWith('M:')) {
