@@ -1163,7 +1163,7 @@
                     <div class="section-title">⚡ Power & Performance</div>
                     <div class="diagnostic-grid">
                         <div class="diagnostic-card">
-                            <div class="diagnostic-label">Power Voltage</div>
+                            <div class="diagnostic-label">Power Voltage (at boot)</div>
                             <div class="diagnostic-value" id="diagVoltageValue">--</div>
                             <div class="diagnostic-status" id="diagVoltageStatus">Checking...</div>
                             <div class="voltage-gauge">
@@ -1209,8 +1209,8 @@
                     <div class="diagnostic-grid">
                         <div class="diagnostic-card">
                             <div class="diagnostic-label">Uptime Since Boot</div>
-                            <div class="diagnostic-value" id="diagUptime">--</div>
-                            <div class="diagnostic-status">Minutes</div>
+                            <div class="diagnostic-value" id="diagUptime">--:--:--</div>
+                            <div class="diagnostic-status">HH:MM:SS</div>
                         </div>
                     </div>
                     <p style="color: #8888ff; font-size: 0.9em; margin-top: 15px; line-height: 1.6;">
@@ -1555,7 +1555,7 @@
                 document.getElementById('diagVoltageValue').textContent = 'N/A';
                 const statusEl = document.getElementById('diagVoltageStatus');
                 if (diagnosticData.voltageStatus === 'NOREAD') {
-                    statusEl.textContent = 'Not Available (Pico 2 W ADC)';
+                    statusEl.textContent = 'Not Available';
                 } else if (diagnosticData.voltageStatus === 'UNAVAIL') {
                     statusEl.textContent = 'Hardware Not Supported';
                 } else {
@@ -1628,7 +1628,14 @@
 
             // Update uptime
             if (diagnosticData.uptime !== null && diagnosticData.uptime !== undefined) {
-                document.getElementById('diagUptime').textContent = diagnosticData.uptime;
+                // Convert minutes to HH:MM:SS format
+                const totalMinutes = diagnosticData.uptime;
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                const seconds = 0; // We only get minute precision from Pico
+                
+                const formattedUptime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('diagUptime').textContent = formattedUptime;
             }
         }
 
