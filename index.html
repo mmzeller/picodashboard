@@ -52,6 +52,13 @@
         header {
             text-align: center;
             margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            flex: 1;
         }
         
         h1 {
@@ -71,6 +78,267 @@
             font-weight: 300;
             letter-spacing: 1.5px;
             text-transform: uppercase;
+        }
+        
+        .diagnostic-btn {
+            background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .diagnostic-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(236, 72, 153, 0.6);
+        }
+        
+        .diagnostic-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal {
+            background: rgba(26, 11, 46, 0.95);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: rgba(26, 11, 46, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 10;
+        }
+        
+        .modal-title {
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #ec4899, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e0e0ff;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+            transform: rotate(90deg);
+        }
+        
+        .modal-content {
+            padding: 30px;
+        }
+        
+        .diagnostic-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #a8a8ff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .diagnostic-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+        
+        .diagnostic-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .diagnostic-label {
+            font-size: 0.8em;
+            color: #8888ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .diagnostic-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .diagnostic-status {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-ok {
+            background: rgba(20, 184, 166, 0.2);
+            color: #5eead4;
+        }
+        
+        .status-warn {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+        
+        .status-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        
+        .voltage-gauge {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .voltage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #fbbf24, #14b8a6);
+            transition: width 0.5s ease;
+            border-radius: 6px;
+        }
+        
+        .log-panel {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+        
+        .log-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .log-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        .log-panel::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.5);
+            border-radius: 4px;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid;
+            line-height: 1.4;
+        }
+        
+        .log-entry.info {
+            border-left-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .log-entry.success {
+            border-left-color: #14b8a6;
+            background: rgba(20, 184, 166, 0.1);
+        }
+        
+        .log-entry.warn {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+        }
+        
+        .log-entry.error {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
         
         .glass-panel {
@@ -842,6 +1110,21 @@
             .comfort-card .gauge-value {
                 font-size: 1.3em;
             }
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .diagnostic-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .modal {
+                width: 95%;
+                max-height: 85vh;
+            }
+            .diagnostic-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         @media (max-width: 480px) {
@@ -867,10 +1150,80 @@
     </style>
 </head>
 <body>
+    <!-- Diagnostic Modal -->
+    <div class="modal-overlay" id="diagnosticModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🔧 System Diagnostics</h2>
+                <button class="close-btn" onclick="closeDiagnostics()">×</button>
+            </div>
+            <div class="modal-content">
+                <!-- Power & Performance -->
+                <div class="diagnostic-section">
+                    <div class="section-title">⚡ Power & Performance</div>
+                    <div class="diagnostic-grid">
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">Power Voltage</div>
+                            <div class="diagnostic-value" id="diagVoltageValue">--</div>
+                            <div class="diagnostic-status" id="diagVoltageStatus">Checking...</div>
+                            <div class="voltage-gauge">
+                                <div class="voltage-fill" id="diagVoltageFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">Free Memory</div>
+                            <div class="diagnostic-value" id="diagMemoryValue">--</div>
+                            <div class="diagnostic-status" id="diagMemoryStatus">Checking...</div>
+                        </div>
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">WiFi Reconnects</div>
+                            <div class="diagnostic-value" id="diagWifiValue">--</div>
+                            <div class="diagnostic-status" id="diagWifiStatus">Stable</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transmission Stats -->
+                <div class="diagnostic-section">
+                    <div class="section-title">📡 Transmission Statistics</div>
+                    <div class="diagnostic-grid">
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">Success Rate</div>
+                            <div class="diagnostic-value" id="diagSuccessRate">--</div>
+                            <div class="diagnostic-status" id="diagSuccessStatus">Calculating...</div>
+                        </div>
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">Successful Sends</div>
+                            <div class="diagnostic-value" id="diagSuccessCount">--</div>
+                        </div>
+                        <div class="diagnostic-card">
+                            <div class="diagnostic-label">Failed Sends</div>
+                            <div class="diagnostic-value" id="diagFailCount">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Logs -->
+                <div class="diagnostic-section">
+                    <div class="section-title">📝 Live System Logs</div>
+                    <div class="log-panel" id="diagLogPanel">
+                        <div class="log-entry info">Waiting for log data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
-            <h1>⚡ Pico Dashboard</h1>
-            <div class="subtitle">Real-time Environmental Monitoring</div>
+            <div class="header-left">
+                <h1>⚡ Pico Dashboard</h1>
+                <div class="subtitle">Real-time Environmental Monitoring</div>
+            </div>
+            <button class="diagnostic-btn" onclick="openDiagnostics()">
+                <span>🔧</span>
+                <span>System Diagnostics</span>
+            </button>
         </header>
         
         <div class="glass-panel config-panel" id="configPanel" style="display: none;">
@@ -1107,59 +1460,225 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        // ========================================
-        // CONFIGURATION - ADD YOUR API KEY HERE
-        // ========================================
-        
-        // ThingSpeak credentials (already configured)
+        // Configuration
         let channelId = '3167437';
         let readKey = '9T856LQWFSUDN4I3';
         
-        // NWS Weather - No API key needed!
-        // We'll use lat/lon for Columbus, Indiana by default
         const DEFAULT_LAT = 39.2314;
         const DEFAULT_LON = -85.8639;
         
-        // ========================================
-        
-        // ========================================
-        
-        // Other variables
+        // Variables
         let updateInterval;
         let chart;
         let previousData = {};
         let lastUpdateTime = null;
-        let offlineThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
-        let currentTimeRange = 1440; // 24 hours in minutes
+        let offlineThreshold = 5 * 60 * 1000;
+        let currentTimeRange = 1440;
         let allHistoricalData = [];
         let refreshCountdown = 20;
         let refreshTimer;
         
-        // Alert thresholds
-        const TEMP_HIGH = 85; // °F
-        const TEMP_LOW = 50; // °F
-        const HUMIDITY_HIGH = 70; // %
-        const HUMIDITY_LOW = 20; // %
+        const TEMP_HIGH = 85;
+        const TEMP_LOW = 50;
+        const HUMIDITY_HIGH = 70;
+        const HUMIDITY_LOW = 20;
         
-        // Weather data
         let weatherLocation = localStorage.getItem('weatherLocation') || '';
         let weatherLat = parseFloat(localStorage.getItem('weatherLat')) || DEFAULT_LAT;
         let weatherLon = parseFloat(localStorage.getItem('weatherLon')) || DEFAULT_LON;
         let outdoorData = null;
         let nwsForecastUrl = null;
 
-        // Auto-start dashboard on load
+        // Diagnostic data
+        let diagnosticData = {
+            voltage: null,
+            voltageStatus: null,
+            memory: null,
+            wifiReconnects: null,
+            successCount: null,
+            failCount: null,
+            logs: []
+        };
+
+        // Modal functions
+        function openDiagnostics() {
+            document.getElementById('diagnosticModal').classList.add('active');
+            updateDiagnosticDisplay();
+        }
+
+        function closeDiagnostics() {
+            document.getElementById('diagnosticModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('diagnosticModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDiagnostics();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDiagnostics();
+            }
+        });
+
+        function updateDiagnosticDisplay() {
+            // Update voltage
+            if (diagnosticData.voltage !== null) {
+                document.getElementById('diagVoltageValue').textContent = diagnosticData.voltage.toFixed(2) + 'V';
+                const statusEl = document.getElementById('diagVoltageStatus');
+                statusEl.textContent = diagnosticData.voltageStatus;
+                
+                if (diagnosticData.voltageStatus === 'OK') {
+                    statusEl.className = 'diagnostic-status status-ok';
+                } else if (diagnosticData.voltageStatus === 'LOW') {
+                    statusEl.className = 'diagnostic-status status-warn';
+                } else {
+                    statusEl.className = 'diagnostic-status status-critical';
+                }
+                
+                const percentage = Math.min(100, Math.max(0, ((diagnosticData.voltage - 3.0) / 2.5) * 100));
+                document.getElementById('diagVoltageFill').style.width = percentage + '%';
+            }
+
+            // Update memory
+            if (diagnosticData.memory !== null) {
+                document.getElementById('diagMemoryValue').textContent = diagnosticData.memory + ' KB';
+                const statusEl = document.getElementById('diagMemoryStatus');
+                if (diagnosticData.memory > 50) {
+                    statusEl.textContent = 'Healthy';
+                    statusEl.className = 'diagnostic-status status-ok';
+                } else if (diagnosticData.memory > 30) {
+                    statusEl.textContent = 'Low';
+                    statusEl.className = 'diagnostic-status status-warn';
+                } else {
+                    statusEl.textContent = 'Critical';
+                    statusEl.className = 'diagnostic-status status-critical';
+                }
+            }
+
+            // Update WiFi
+            if (diagnosticData.wifiReconnects !== null) {
+                document.getElementById('diagWifiValue').textContent = diagnosticData.wifiReconnects;
+                const statusEl = document.getElementById('diagWifiStatus');
+                if (diagnosticData.wifiReconnects <= 5) {
+                    statusEl.textContent = 'Stable';
+                    statusEl.className = 'diagnostic-status status-ok';
+                } else if (diagnosticData.wifiReconnects <= 15) {
+                    statusEl.textContent = 'Moderate';
+                    statusEl.className = 'diagnostic-status status-warn';
+                } else {
+                    statusEl.textContent = 'Unstable';
+                    statusEl.className = 'diagnostic-status status-critical';
+                }
+            }
+
+            // Update success stats
+            if (diagnosticData.successCount !== null && diagnosticData.failCount !== null) {
+                document.getElementById('diagSuccessCount').textContent = diagnosticData.successCount;
+                document.getElementById('diagFailCount').textContent = diagnosticData.failCount;
+                
+                const total = diagnosticData.successCount + diagnosticData.failCount;
+                if (total > 0) {
+                    const rate = (diagnosticData.successCount / total * 100).toFixed(1);
+                    document.getElementById('diagSuccessRate').textContent = rate + '%';
+                    
+                    const statusEl = document.getElementById('diagSuccessStatus');
+                    if (rate > 95) {
+                        statusEl.textContent = 'Excellent';
+                        statusEl.className = 'diagnostic-status status-ok';
+                    } else if (rate > 85) {
+                        statusEl.textContent = 'Good';
+                        statusEl.className = 'diagnostic-status status-ok';
+                    } else if (rate > 70) {
+                        statusEl.textContent = 'Fair';
+                        statusEl.className = 'diagnostic-status status-warn';
+                    } else {
+                        statusEl.textContent = 'Poor';
+                        statusEl.className = 'diagnostic-status status-critical';
+                    }
+                }
+            }
+
+            // Update logs
+            updateDiagnosticLogs();
+        }
+
+        function updateDiagnosticLogs() {
+            const logPanel = document.getElementById('diagLogPanel');
+            logPanel.innerHTML = '';
+            
+            if (diagnosticData.logs.length === 0) {
+                logPanel.innerHTML = '<div class="log-entry info">No log data available yet...</div>';
+                return;
+            }
+
+            diagnosticData.logs.forEach(log => {
+                const entry = document.createElement('div');
+                let level = 'info';
+                if (log.includes('[SUCCESS]')) level = 'success';
+                else if (log.includes('[WARN]')) level = 'warn';
+                else if (log.includes('[ERROR]')) level = 'error';
+                
+                entry.className = `log-entry ${level}`;
+                entry.textContent = log;
+                logPanel.appendChild(entry);
+            });
+        }
+
+        function parseDiagnostics(status) {
+            if (!status) return;
+            
+            const parts = status.split(' | ');
+            
+            parts.forEach(part => {
+                if (part.startsWith('V:')) {
+                    const match = part.match(/V:([\d.]+)V\((\w+)\)/);
+                    if (match) {
+                        diagnosticData.voltage = parseFloat(match[1]);
+                        diagnosticData.voltageStatus = match[2];
+                    }
+                } else if (part.startsWith('M:')) {
+                    const match = part.match(/M:(\d+)KB/);
+                    if (match) {
+                        diagnosticData.memory = parseInt(match[1]);
+                    }
+                } else if (part.startsWith('W:')) {
+                    const match = part.match(/W:(\d+)/);
+                    if (match) {
+                        diagnosticData.wifiReconnects = parseInt(match[1]);
+                    }
+                } else if (part.startsWith('OK:')) {
+                    const match = part.match(/OK:(\d+)/);
+                    if (match) {
+                        diagnosticData.successCount = parseInt(match[1]);
+                    }
+                } else if (part.startsWith('FAIL:')) {
+                    const match = part.match(/FAIL:(\d+)/);
+                    if (match) {
+                        diagnosticData.failCount = parseInt(match[1]);
+                    }
+                } else if (part.startsWith('LOG:')) {
+                    const logEntry = part.substring(4);
+                    diagnosticData.logs.unshift(logEntry);
+                    if (diagnosticData.logs.length > 50) {
+                        diagnosticData.logs.pop();
+                    }
+                }
+            });
+        }
+
+        // Auto-start dashboard
         window.addEventListener('DOMContentLoaded', function() {
             document.getElementById('dashboardContent').classList.remove('hidden');
             showStatus('🔄 Establishing connection...', 'loading');
             fetchData();
             updateInterval = setInterval(fetchData, 20000);
-            // Check offline status every 30 seconds
             setInterval(checkOfflineStatus, 30000);
-            // Start refresh countdown
             startRefreshCountdown();
             
-            // Initialize weather with default Columbus, IN if not set
             if (!weatherLocation) {
                 weatherLocation = 'Columbus, IN';
                 weatherLat = DEFAULT_LAT;
@@ -1169,14 +1688,9 @@
                 localStorage.setItem('weatherLon', weatherLon);
             }
             
-            // Display current location
             document.getElementById('locationDisplay').textContent = weatherLocation;
-            
-            // Fetch weather data immediately
             fetchWeatherData();
-            
-            // Set up regular updates
-            window.weatherInterval = setInterval(fetchWeatherData, 600000); // Every 10 minutes
+            window.weatherInterval = setInterval(fetchWeatherData, 600000);
         });
         
         function toggleLocationEdit(forceShow = false) {
@@ -1205,15 +1719,12 @@
                 return;
             }
             
-            // Check if it's a 5-digit ZIP code
             if (!/^\d{5}$/.test(input)) {
                 alert('Please enter a valid 5-digit ZIP code (e.g., 47203)');
                 return;
             }
             
             try {
-                // Step 1: Convert ZIP to lat/lon using Zippopotam
-                console.log('Looking up ZIP:', input);
                 const zipUrl = `https://api.zippopotam.us/us/${input}`;
                 const zipResponse = await fetch(zipUrl);
                 
@@ -1227,9 +1738,6 @@
                 const lon = parseFloat(zipData.places[0].longitude);
                 const cityName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
                 
-                console.log('Found location:', cityName, lat, lon);
-                
-                // Step 2: Verify with NWS
                 const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
                 const pointsResponse = await fetch(pointsUrl);
                 
@@ -1241,9 +1749,6 @@
                 const pointsData = await pointsResponse.json();
                 nwsForecastUrl = pointsData.properties.forecast;
                 
-                console.log('NWS forecast URL:', nwsForecastUrl);
-                
-                // Step 3: Save everything
                 weatherLocation = cityName;
                 weatherLat = lat;
                 weatherLon = lon;
@@ -1253,15 +1758,10 @@
                 localStorage.setItem('weatherLon', lon);
                 
                 document.getElementById('locationDisplay').textContent = cityName;
-                
-                // Turn off edit mode
                 document.getElementById('locationToggle').checked = false;
                 toggleLocationEdit();
                 
-                // Fetch weather immediately
-                console.log('Fetching weather for new location...');
                 await fetchWeatherData();
-                
                 alert(`Location updated to: ${cityName}`);
                 
             } catch (error) {
@@ -1287,23 +1787,6 @@
             }, 1000);
         }
 
-        function startDashboard() {
-            channelId = document.getElementById('channelId').value.trim();
-            readKey = document.getElementById('readKey').value.trim();
-            
-            if (!channelId || !readKey) {
-                showStatus('⚠️ Please enter both Channel ID and Read API Key', 'error');
-                return;
-            }
-            
-            document.getElementById('configPanel').classList.add('hidden');
-            document.getElementById('dashboardContent').classList.remove('hidden');
-            
-            showStatus('🔄 Establishing connection...', 'loading');
-            fetchData();
-            updateInterval = setInterval(fetchData, 20000);
-        }
-
         async function fetchData() {
             try {
                 const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=1`;
@@ -1323,10 +1806,12 @@
                 const dataTimestamp = new Date(feed.created_at);
                 lastUpdateTime = dataTimestamp;
                 
+                // Parse diagnostics from status field
+                parseDiagnostics(feed.status);
+                
                 updateDisplay(feed);
                 fetchHistoricalData();
                 
-                // Check if data is recent
                 const now = new Date();
                 const timeSinceUpdate = now - dataTimestamp;
                 
@@ -1371,7 +1856,6 @@
             const pressure = parseFloat(feed.field3);
             const timestamp = new Date(feed.created_at);
             
-            // Update values and gauges
             updateGauge('temp', temp, 0, 120);
             updateGauge('hum', humidity, 0, 100);
             updateGauge('pres', pressure, 28, 31);
@@ -1389,42 +1873,30 @@
             updateTrend('hum', humidity);
             updateTrend('pres', pressure);
             
-            // Calculate feels like temperature (heat index)
             const feelsLike = calculateFeelsLike(temp, humidity);
             document.getElementById('feelsLike').textContent = feelsLike.toFixed(1);
             updateGauge('feels', feelsLike, 0, 120);
             
-            // Calculate dew point
             const dewPoint = calculateDewPoint(temp, humidity);
             document.getElementById('dewPoint').textContent = dewPoint.toFixed(1);
             updateGauge('dew', dewPoint, 0, 100);
             
-            // Check for alerts
             checkAlerts(temp, humidity, pressure);
-            
-            // Reset refresh countdown
             refreshCountdown = 20;
         }
         
         function calculateDewPoint(tempF, humidity) {
-            // Convert Fahrenheit to Celsius
             const tempC = (tempF - 32) * 5/9;
             const RH = humidity;
-            
-            // Magnus formula for dew point
             const a = 17.27;
             const b = 237.7;
-            
             const alpha = ((a * tempC) / (b + tempC)) + Math.log(RH/100);
             const dewPointC = (b * alpha) / (a - alpha);
-            
-            // Convert back to Fahrenheit
             return (dewPointC * 9/5) + 32;
         }
         
         function calculateFeelsLike(tempF, humidity) {
-            // Heat Index formula (Steadman's formula)
-            if (tempF < 80) return tempF; // Heat index only applies above 80°F
+            if (tempF < 80) return tempF;
             
             const T = tempF;
             const RH = humidity;
@@ -1433,7 +1905,6 @@
                      - 0.00683783*T*T - 0.05481717*RH*RH + 0.00122874*T*T*RH 
                      + 0.00085282*T*RH*RH - 0.00000199*T*T*RH*RH;
             
-            // Adjustments for low humidity or temperature
             if (RH < 13 && T >= 80 && T <= 112) {
                 HI = HI - ((13-RH)/4)*Math.sqrt((17-Math.abs(T-95))/17);
             } else if (RH > 85 && T >= 80 && T <= 87) {
@@ -1475,7 +1946,6 @@
                 });
             }
             
-            // Display alerts
             if (alerts.length > 0) {
                 alertsDiv.innerHTML = alerts.map(alert => 
                     `<div class="alert-banner ${alert.type}">
@@ -1517,8 +1987,7 @@
 
         async function fetchHistoricalData() {
             try {
-                // Fetch more data based on time range
-                let results = 8000; // Max allowed by ThingSpeak
+                let results = 8000;
                 if (currentTimeRange <= 60) results = 60;
                 else if (currentTimeRange <= 360) results = 360;
                 else if (currentTimeRange <= 1440) results = 1440;
@@ -1531,7 +2000,6 @@
                 
                 allHistoricalData = data.feeds;
                 
-                // Calculate min/max for today
                 const now = new Date();
                 const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 const todayData = data.feeds.filter(f => new Date(f.created_at) >= startOfDay);
@@ -1558,7 +2026,6 @@
         function setTimeRange(minutes, button) {
             currentTimeRange = minutes;
             
-            // Update active button
             document.querySelectorAll('.time-range-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -1570,14 +2037,12 @@
         function updateChartForTimeRange() {
             if (allHistoricalData.length === 0) return;
             
-            // Filter data based on time range
             const now = new Date();
             const cutoffTime = new Date(now.getTime() - currentTimeRange * 60 * 1000);
             const filteredData = allHistoricalData.filter(f => new Date(f.created_at) >= cutoffTime);
             
             if (filteredData.length === 0) return;
             
-            // Determine sampling rate based on range
             const isMobile = window.innerWidth < 768;
             let maxPoints = isMobile ? 20 : 50;
             if (currentTimeRange > 1440) maxPoints = isMobile ? 30 : 100;
@@ -1606,19 +2071,16 @@
                 return;
             }
             
-            // Get data from selected time range
             const now = new Date();
             const cutoffTime = new Date(now.getTime() - currentTimeRange * 60 * 1000);
             const exportData = allHistoricalData.filter(f => new Date(f.created_at) >= cutoffTime);
             
-            // Create CSV
             let csv = 'Timestamp,Temperature (°F),Humidity (%),Pressure (inHg)\n';
             exportData.forEach(feed => {
                 const timestamp = new Date(feed.created_at).toLocaleString();
                 csv += `${timestamp},${feed.field1},${feed.field2},${feed.field3}\n`;
             });
             
-            // Download
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1632,15 +2094,12 @@
         
         async function fetchWeatherData() {
             if (!weatherLat || !weatherLon) {
-                console.log('Weather coordinates not set, using defaults');
                 weatherLat = DEFAULT_LAT;
                 weatherLon = DEFAULT_LON;
             }
             
             try {
-                // Step 1: Get NWS points data if we don't have forecast URL
                 if (!nwsForecastUrl) {
-                    console.log('Getting NWS forecast URL for:', weatherLat, weatherLon);
                     const pointsUrl = `https://api.weather.gov/points/${weatherLat},${weatherLon}`;
                     const pointsResponse = await fetch(pointsUrl);
                     
@@ -1650,11 +2109,8 @@
                     
                     const pointsData = await pointsResponse.json();
                     nwsForecastUrl = pointsData.properties.forecast;
-                    console.log('Got forecast URL:', nwsForecastUrl);
                 }
                 
-                // Step 2: Get current forecast
-                console.log('Fetching forecast from:', nwsForecastUrl);
                 const forecastResponse = await fetch(nwsForecastUrl);
                 
                 if (!forecastResponse.ok) {
@@ -1664,15 +2120,9 @@
                 const forecastData = await forecastResponse.json();
                 const currentPeriod = forecastData.properties.periods[0];
                 
-                console.log('Current conditions:', currentPeriod);
-                
-                // Parse NWS data
                 const outTemp = currentPeriod.temperature;
                 const outHum = currentPeriod.relativeHumidity?.value || 50;
                 
-                console.log('Outside temp:', outTemp, 'Outside humidity:', outHum);
-                
-                // Create outdoorData object
                 outdoorData = {
                     main: {
                         temp: outTemp,
@@ -1685,19 +2135,16 @@
                     }]
                 };
                 
-                // Calculate feels like if hot
                 if (outTemp >= 80) {
                     outdoorData.main.feels_like = calculateFeelsLike(outTemp, outHum);
                 }
                 
-                // Update outside gauges
                 document.getElementById('tempOutValue').textContent = outTemp.toFixed(1);
                 document.getElementById('humOutValue').textContent = outHum.toFixed(0);
                 
                 updateGauge('tempOut', outTemp, 0, 120);
                 updateGauge('humOut', outHum, 0, 100);
                 
-                // Calculate outside comfort metrics
                 const outFeelsLike = outdoorData.main.feels_like;
                 const outDewPoint = calculateDewPoint(outTemp, outHum);
                 
@@ -1707,20 +2154,11 @@
                 updateGauge('feelsOut', outFeelsLike, 0, 120);
                 updateGauge('dewOut', outDewPoint, 0, 100);
                 
-                // Set weather icon
                 const iconMap = {
-                    'Clear': '☀️',
-                    'Sunny': '☀️',
-                    'Clouds': '☁️',
-                    'Cloudy': '☁️',
-                    'Partly': '⛅',
-                    'Rain': '🌧️',
-                    'Showers': '🌦️',
-                    'Thunderstorm': '⛈️',
-                    'Thunder': '⛈️',
-                    'Snow': '❄️',
-                    'Fog': '🌫️',
-                    'Mist': '🌫️'
+                    'Clear': '☀️', 'Sunny': '☀️', 'Clouds': '☁️', 'Cloudy': '☁️',
+                    'Partly': '⛅', 'Rain': '🌧️', 'Showers': '🌦️',
+                    'Thunderstorm': '⛈️', 'Thunder': '⛈️', 'Snow': '❄️',
+                    'Fog': '🌫️', 'Mist': '🌫️'
                 };
                 
                 let weatherIcon = '🌤️';
@@ -1732,9 +2170,6 @@
                 }
                 document.getElementById('weatherIcon').textContent = weatherIcon;
                 
-                console.log('Weather icon set to:', weatherIcon);
-                
-                // Update comparison if inside data exists
                 const insideTemp = parseFloat(document.getElementById('tempValue').textContent);
                 const insideHum = parseFloat(document.getElementById('humValue').textContent);
                 
@@ -1743,8 +2178,6 @@
                 } else {
                     document.getElementById('comparisonText').textContent = `Outside: ${currentPeriod.shortForecast}`;
                 }
-                
-                console.log('Weather data updated successfully');
                 
             } catch (error) {
                 console.error('NWS weather fetch error:', error);
