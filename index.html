@@ -1631,40 +1631,42 @@
         function parseDiagnostics(status) {
             if (!status) return;
             
-            const parts = status.split(' | ');
+            // Simple format: "V:4.69V-OK-M:78KB-W:1-S:0-F:2"
+            const parts = status.split('-');
             
             parts.forEach(part => {
                 if (part.startsWith('V:')) {
-                    const match = part.match(/V:([\d.]+)V\((\w+)\)/);
+                    // Voltage: V:4.69V or just OK (second part)
+                    const match = part.match(/V:([\d.]+)V/);
                     if (match) {
                         diagnosticData.voltage = parseFloat(match[1]);
-                        diagnosticData.voltageStatus = match[2];
                     }
+                } else if (part === 'OK' || part === 'LOW' || part === 'CRITICAL' || part === 'HIGH') {
+                    // Voltage status
+                    diagnosticData.voltageStatus = part;
                 } else if (part.startsWith('M:')) {
+                    // Memory: M:78KB
                     const match = part.match(/M:(\d+)KB/);
                     if (match) {
                         diagnosticData.memory = parseInt(match[1]);
                     }
                 } else if (part.startsWith('W:')) {
+                    // WiFi reconnects: W:2
                     const match = part.match(/W:(\d+)/);
                     if (match) {
                         diagnosticData.wifiReconnects = parseInt(match[1]);
                     }
-                } else if (part.startsWith('OK:')) {
-                    const match = part.match(/OK:(\d+)/);
+                } else if (part.startsWith('S:')) {
+                    // Success count: S:145
+                    const match = part.match(/S:(\d+)/);
                     if (match) {
                         diagnosticData.successCount = parseInt(match[1]);
                     }
-                } else if (part.startsWith('FAIL:')) {
-                    const match = part.match(/FAIL:(\d+)/);
+                } else if (part.startsWith('F:')) {
+                    // Fail count: F:3
+                    const match = part.match(/F:(\d+)/);
                     if (match) {
                         diagnosticData.failCount = parseInt(match[1]);
-                    }
-                } else if (part.startsWith('LOG:')) {
-                    const logEntry = part.substring(4);
-                    diagnosticData.logs.unshift(logEntry);
-                    if (diagnosticData.logs.length > 50) {
-                        diagnosticData.logs.pop();
                     }
                 }
             });
