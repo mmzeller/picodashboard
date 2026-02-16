@@ -1791,7 +1791,7 @@
 
         async function fetchData() {
             try {
-                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=1`;
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=1&status=true`;
                 const response = await fetch(url);
                 
                 if (!response.ok) {
@@ -1994,7 +1994,7 @@
                 else if (currentTimeRange <= 360) results = 360;
                 else if (currentTimeRange <= 1440) results = 1440;
                 
-                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=${results}`;
+                const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readKey}&results=${results}&status=true`;
                 const response = await fetch(url);
                 const data = await response.json();
                 
